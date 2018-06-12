@@ -77,8 +77,8 @@ var fillArray = function () {
   var adsArray = [];
 
   for (var j = 0; j < ADS_LENGTH; j++) {
-    var LocationX = getRandom(LOCATION_X_MIN, LOCATION_X_MAX);
-    var LocationY = getRandom(LOCATION_Y_MIN, LOCATION_Y_MAX);
+    var locationX = getRandom(LOCATION_X_MIN, LOCATION_X_MAX);
+    var locationY = getRandom(LOCATION_Y_MIN, LOCATION_Y_MAX);
 
     adsArray[j] = {
       author: {
@@ -86,7 +86,7 @@ var fillArray = function () {
       },
       offer: {
         title: randomTitle[j],
-        address: LocationX + ', ' + LocationY,
+        address: locationX + ', ' + locationY,
         price: getRandom(PRICE_MIN, PRICE_MAX),
         type: getRandomElement(TYPE),
         rooms: getRandom(ROOMS_MIN, ROOMS_MAX),
@@ -98,8 +98,8 @@ var fillArray = function () {
         photos: shuffleArr(photosArray)
       },
       location: {
-        x: LocationX,
-        y: LocationY,
+        x: locationX,
+        y: locationY,
       }
     };
   }
