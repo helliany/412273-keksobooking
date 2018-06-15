@@ -211,10 +211,10 @@ var onPinMainClick = function () {
   adForm.classList.remove('ad-form--disabled');
   for (var i = 0; i < adFieldset.length; i++) {
     adFieldset[i].disabled = false;
-  };
+  }
   for (var j = 0; j < mapPin.length; j++) {
     mapPin[j].classList.remove('hidden');
-  };
+  }
 };
 
 mapPinMain.addEventListener('mouseup', onPinMainClick);
@@ -236,7 +236,7 @@ var hideCardElements = function () {
 // показываем карточку
 var openCardElements = function (evt) {
   for (var i = 0; i < mapPin.length; i++) {
-    if (mapPin[i] == evt.currentTarget && !mapPin[i].matches('.map__pin--main')){
+    if (mapPin[i] === evt.currentTarget && !mapPin[i].matches('.map__pin--main')) {
       mapCard[i - 1].classList.remove('hidden');
     }
   }
