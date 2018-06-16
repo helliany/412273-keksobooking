@@ -18,18 +18,18 @@ var LOCATION_Y_MAX = 630;
 var ADS_LENGTH = 8;
 var MAP_PIN_WIDTH = 50;
 var MAP_PIN_HEIGHT = 70;
-var MAP_PIN_MAIN_WIDTH = 65;
-var MAP_PIN_MAIN_HEIGHT = 65;
-var MAP_PIN_MAIN_X = 570;
-var MAP_PIN_MAIN_Y = 375;
+// var MAP_PIN_MAIN_WIDTH = 65;
+// var MAP_PIN_MAIN_HEIGHT = 65;
 var ESC_KEYCODE = 27;
 var ENTER_KEYCODE = 13;
 
-// карта
 var map = document.querySelector('.map');
 var mapPinMain = map.querySelector('.map__pin--main');
 var adForm = document.querySelector('.ad-form');
 var adFieldset = adForm.querySelectorAll('fieldset');
+var typeInput = adForm.querySelector('#type');
+var timeInInput = adForm.querySelector('#timein');
+var timeOutInput = adForm.querySelector('#timeout');
 
 // рандомное число
 var getRandom = function (min, max) {
@@ -204,7 +204,7 @@ disableFieldset();
 var mapPin = map.querySelectorAll('.map__pin');
 var inputAddress = adForm.querySelector('#address');
 
-inputAddress.value = (MAP_PIN_MAIN_X + Math.floor(0.5 * MAP_PIN_MAIN_WIDTH)) + ', ' + (MAP_PIN_MAIN_Y + Math.floor(0.5 * MAP_PIN_MAIN_HEIGHT));
+inputAddress.value = (map.offsetWidth * 0.5) + ', ' + (map.offsetHeight * 0.5);
 
 var onPinMainClick = function () {
   map.classList.remove('map--faded');
@@ -282,3 +282,32 @@ var closePopup = function () {
 
 openPopup();
 closePopup();
+
+// валидация формы
+// валидация поля type
+var validateType = function () {
+  var priceInput = adForm.querySelector('#price');
+  if (typeInput.value === 'flat') {
+    priceInput.min = '1000';
+  } else if (typeInput.value === 'bungalo') {
+    priceInput.min = '0';
+  } else if (typeInput.value === 'house') {
+    priceInput.min = '5000';
+  } else if (typeInput.value === 'palace') {
+    priceInput.min = '10000';
+  }
+  priceInput.placeholder = priceInput.min;
+};
+
+typeInput.addEventListener('change', function () {
+  validateType();
+});
+
+// валидация полей time
+timeInInput.addEventListener('change', function () {
+  timeOutInput.value = timeInInput.value;
+});
+
+timeOutInput.addEventListener('change', function () {
+  timeInInput.value = timeOutInput.value;
+});
