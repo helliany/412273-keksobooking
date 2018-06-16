@@ -218,11 +218,6 @@ var onPinMainClick = function () {
 };
 
 mapPinMain.addEventListener('mouseup', onPinMainClick);
-mapPinMain.addEventListener('keydown', function (evt) {
-  if (evt.keyCode === ENTER_KEYCODE) {
-    onPinMainClick();
-  }
-});
 
 // прячем карточку
 var mapCard = map.querySelectorAll('.map__card');
@@ -283,27 +278,27 @@ var closePopup = function () {
 openPopup();
 closePopup();
 
-// валидация формы
-// валидация поля type
-var validateType = function () {
+// выбор поля type
+var typePrice = {
+  flat: '1000',
+  bungalo: '0',
+  house: '5000',
+  palace: '10000'
+};
+
+var selectType = function () {
   var priceInput = adForm.querySelector('#price');
-  if (typeInput.value === 'flat') {
-    priceInput.min = '1000';
-  } else if (typeInput.value === 'bungalo') {
-    priceInput.min = '0';
-  } else if (typeInput.value === 'house') {
-    priceInput.min = '5000';
-  } else if (typeInput.value === 'palace') {
-    priceInput.min = '10000';
-  }
-  priceInput.placeholder = priceInput.min;
+  var userType = typeInput.options[typeInput.selectedIndex].value;
+  var userPrice = typePrice[userType];
+  priceInput.min = userPrice;
+  priceInput.placeholder = userPrice;
 };
 
 typeInput.addEventListener('change', function () {
-  validateType();
+  selectType();
 });
 
-// валидация полей time
+// выбор полей time
 timeInInput.addEventListener('change', function () {
   timeOutInput.value = timeInInput.value;
 });
