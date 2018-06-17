@@ -18,6 +18,24 @@ var LOCATION_Y_MAX = 630;
 var ADS_LENGTH = 8;
 var MAP_PIN_WIDTH = 50;
 var MAP_PIN_HEIGHT = 70;
+// var MAP_PIN_MAIN_WIDTH = 65;
+// var MAP_PIN_MAIN_HEIGHT = 65;
+var ESC_KEYCODE = 27;
+var ENTER_KEYCODE = 13;
+
+// форма, селекты комнат и гостей
+var INDEX_NO_GUESTS = 3;
+var VALUE_NO_GUESTS = 0;
+
+var map = document.querySelector('.map');
+var mapPinMain = map.querySelector('.map__pin--main');
+var adForm = document.querySelector('.ad-form');
+var adFieldset = adForm.querySelectorAll('fieldset');
+var typeInput = adForm.querySelector('#type');
+var timeInInput = adForm.querySelector('#timein');
+var timeOutInput = adForm.querySelector('#timeout');
+var roomInput = adForm.querySelector('#room_number');
+var capacityInput = adForm.querySelector('#capacity');
 
 // рандомное число
 var getRandom = function (min, max) {
@@ -107,14 +125,11 @@ var fillArray = function () {
 };
 var ads = fillArray();
 
-// переключение карты из неактивного состояния в активное
-var map = document.querySelector('.map');
-map.classList.remove('map--faded');
-
 // создание меток на карте
 var renderMapPin = function (mapPin) {
   var mapPinTemplate = document.querySelector('template').content.querySelector('.map__pin');
   var mapPinElement = mapPinTemplate.cloneNode(true);
+  mapPinElement.classList.add('hidden');
   mapPinElement.style = 'left: ' + (mapPin.location.x - 0.5 * MAP_PIN_WIDTH) + 'px; top: ' + (mapPin.location.y - MAP_PIN_HEIGHT) + 'px;';
   mapPinElement.querySelector('img').src = mapPin.author.avatar;
   mapPinElement.querySelector('img').alt = mapPin.offer.title;
@@ -133,10 +148,11 @@ var addPinElements = function () {
 
 addPinElements();
 
-// создание объявлений
+// создание карточек
 var renderMapCard = function (mapCard) {
   var mapCardTemplate = document.querySelector('template').content.querySelector('.map__card');
   var mapCardElement = mapCardTemplate.cloneNode(true);
+  mapCardElement.classList.add('hidden');
 
   var getType = function (type) {
     if (type === 'flat') {
@@ -170,7 +186,7 @@ var renderMapCard = function (mapCard) {
   return mapCardElement;
 };
 
-// отрисовка объявлений
+// отрисовка карточек
 var addCardElements = function () {
   var mapFilters = map.querySelector('.map__filters-container');
   var fragment = document.createDocumentFragment();
@@ -181,3 +197,163 @@ var addCardElements = function () {
 };
 
 addCardElements();
+
+// поля формы .ad-form заблокированы
+var disableFieldset = function () {
+  for (var i = 0; i < adFieldset.length; i++) {
+    adFieldset[i].disabled = true;
+  }
+};
+disableFieldset();
+
+// переключение карты из неактивного состояния в активное
+var mapPin = map.querySelectorAll('.map__pin');
+var inputAddress = adForm.querySelector('#address');
+
+inputAddress.value = (map.offsetWidth * 0.5) + ', ' + (map.offsetHeight * 0.5);
+
+var onPinMainClick = function () {
+  map.classList.remove('map--faded');
+  adForm.classList.remove('ad-form--disabled');
+  for (var i = 0; i < adFieldset.length; i++) {
+    adFieldset[i].disabled = false;
+  }
+
+  for (var j = 0; j < mapPin.length; j++) {
+    mapPin[j].classList.remove('hidden');
+  }
+};
+
+mapPinMain.addEventListener('mouseup', onPinMainClick);
+
+// прячем карточку
+var mapCard = map.querySelectorAll('.map__card');
+
+var hideCardElements = function () {
+  for (var i = 0; i < mapCard.length; i++) {
+    mapCard[i].classList.add('hidden');
+  }
+};
+
+// показываем карточку
+var openCardElements = function (evt) {
+  for (var i = 0; i < mapPin.length; i++) {
+    if (mapPin[i] === evt.currentTarget && !mapPin[i].matches('.map__pin--main')) {
+      mapCard[i - 1].classList.remove('hidden');
+    }
+  }
+};
+
+// показываем/прячем по клику/enter на пине
+var openPopup = function () {
+  for (var i = 0; i < mapPin.length; i++) {
+    mapPin[i].addEventListener('click', function (evt) {
+      hideCardElements();
+      openCardElements(evt);
+    });
+
+    mapPin[i].addEventListener('keydown', function (evt) {
+      if (evt.keyCode === ENTER_KEYCODE) {
+        hideCardElements();
+        openCardElements(evt);
+      }
+    });
+  }
+};
+
+var onPopupEscPress = function (evt) {
+  if (evt.keyCode === ESC_KEYCODE) {
+    hideCardElements();
+  }
+};
+
+// прячем по клику/enter на кнопке, esc
+var closePopup = function () {
+  var popupClose = map.querySelectorAll('.popup__close');
+  for (var i = 0; i < popupClose.length; i++) {
+    popupClose[i].addEventListener('click', function () {
+      hideCardElements();
+    });
+
+    popupClose[i].addEventListener('keydown', function (evt) {
+      if (evt.keyCode === ENTER_KEYCODE) {
+        hideCardElements();
+      }
+    });
+
+    document.addEventListener('keydown', onPopupEscPress);
+  }
+};
+
+openPopup();
+closePopup();
+
+// выбор поля type
+var typePrice = {
+  flat: '1000',
+  bungalo: '0',
+  house: '5000',
+  palace: '10000'
+};
+
+var selectType = function () {
+  var priceInput = adForm.querySelector('#price');
+  var userType = typeInput.options[typeInput.selectedIndex].value;
+  var userPrice = typePrice[userType];
+  priceInput.min = userPrice;
+  priceInput.placeholder = userPrice;
+};
+
+typeInput.addEventListener('change', function () {
+  selectType();
+});
+
+// синхронизация времени заезда и выезда
+timeInInput.addEventListener('change', function () {
+  timeOutInput.value = timeInInput.value;
+});
+
+timeOutInput.addEventListener('change', function () {
+  timeInInput.value = timeOutInput.value;
+});
+
+// выбор поля rooms
+var selectRoom = function () {
+  var userRoomIndex = parseInt(roomInput.selectedIndex, 10);
+  var userRoom = roomInput.options[userRoomIndex].value;
+
+  for (var i = 0; i < capacityInput.options.length; i++) {
+    capacityInput.options[i].disabled = true;
+  }
+
+  if (userRoomIndex === INDEX_NO_GUESTS) {
+    capacityInput.options[INDEX_NO_GUESTS].disabled = false;
+    return;
+  }
+
+  for (var j = 0; j < capacityInput.options.length; j++) {
+    if (capacityInput.options[j].value <= userRoom && parseInt(capacityInput.options[j].value, 10) !== VALUE_NO_GUESTS) {
+      capacityInput.options[j].disabled = false;
+    }
+  }
+};
+
+// синхронизация комнат и гостей
+var syncRoomsGuests = function () {
+  selectRoom();
+  if (roomInput.options[INDEX_NO_GUESTS].selected) {
+    capacityInput.options[INDEX_NO_GUESTS].selected = true;
+  } else {
+    for (var i = 0; i < capacityInput.options.length; i++) {
+      if (capacityInput.options[i].value === roomInput.options[roomInput.selectedIndex].value) {
+        capacityInput.options[i].selected = true;
+      }
+    }
+  }
+};
+
+syncRoomsGuests();
+
+roomInput.addEventListener('change', function () {
+  syncRoomsGuests();
+});
