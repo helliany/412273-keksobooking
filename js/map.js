@@ -23,6 +23,10 @@ var MAP_PIN_HEIGHT = 70;
 var ESC_KEYCODE = 27;
 var ENTER_KEYCODE = 13;
 
+// форма, селекты комнат и гостей
+var INDEX_NO_GUESTS = 3;
+var VALUE_NO_GUESTS = 0;
+
 var map = document.querySelector('.map');
 var mapPinMain = map.querySelector('.map__pin--main');
 var adForm = document.querySelector('.ad-form');
@@ -30,6 +34,8 @@ var adFieldset = adForm.querySelectorAll('fieldset');
 var typeInput = adForm.querySelector('#type');
 var timeInInput = adForm.querySelector('#timein');
 var timeOutInput = adForm.querySelector('#timeout');
+var roomInput = adForm.querySelector('#room_number');
+var capacityInput = adForm.querySelector('#capacity');
 
 // рандомное число
 var getRandom = function (min, max) {
@@ -212,6 +218,7 @@ var onPinMainClick = function () {
   for (var i = 0; i < adFieldset.length; i++) {
     adFieldset[i].disabled = false;
   }
+
   for (var j = 0; j < mapPin.length; j++) {
     mapPin[j].classList.remove('hidden');
   }
@@ -244,6 +251,7 @@ var openPopup = function () {
       hideCardElements();
       openCardElements(evt);
     });
+
     mapPin[i].addEventListener('keydown', function (evt) {
       if (evt.keyCode === ENTER_KEYCODE) {
         hideCardElements();
@@ -266,11 +274,13 @@ var closePopup = function () {
     popupClose[i].addEventListener('click', function () {
       hideCardElements();
     });
+
     popupClose[i].addEventListener('keydown', function (evt) {
       if (evt.keyCode === ENTER_KEYCODE) {
         hideCardElements();
       }
     });
+
     document.addEventListener('keydown', onPopupEscPress);
   }
 };
@@ -298,11 +308,52 @@ typeInput.addEventListener('change', function () {
   selectType();
 });
 
-// выбор полей time
+// синхронизация времени заезда и выезда
 timeInInput.addEventListener('change', function () {
   timeOutInput.value = timeInInput.value;
 });
 
 timeOutInput.addEventListener('change', function () {
   timeInInput.value = timeOutInput.value;
+});
+
+// выбор поля rooms
+var selectRoom = function () {
+  var userRoomIndex = parseInt(roomInput.selectedIndex, 10);
+  var userRoom = roomInput.options[userRoomIndex].value;
+
+  for (var i = 0; i < capacityInput.options.length; i++) {
+    capacityInput.options[i].disabled = true;
+  }
+
+  if (userRoomIndex === INDEX_NO_GUESTS) {
+    capacityInput.options[INDEX_NO_GUESTS].disabled = false;
+    return;
+  }
+
+  for (var j = 0; j < capacityInput.options.length; j++) {
+    if (capacityInput.options[j].value <= userRoom && parseInt(capacityInput.options[j].value, 10) !== VALUE_NO_GUESTS) {
+      capacityInput.options[j].disabled = false;
+    }
+  }
+};
+
+// синхронизация комнат и гостей
+var syncRoomsGuests = function () {
+  selectRoom();
+  if (roomInput.options[INDEX_NO_GUESTS].selected) {
+    capacityInput.options[INDEX_NO_GUESTS].selected = true;
+  } else {
+    for (var i = 0; i < capacityInput.options.length; i++) {
+      if (capacityInput.options[i].value === roomInput.options[roomInput.selectedIndex].value) {
+        capacityInput.options[i].selected = true;
+      }
+    }
+  }
+};
+
+syncRoomsGuests();
+
+roomInput.addEventListener('change', function () {
+  syncRoomsGuests();
 });
