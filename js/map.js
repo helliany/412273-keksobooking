@@ -18,24 +18,33 @@ var LOCATION_Y_MAX = 630;
 var ADS_LENGTH = 8;
 var MAP_PIN_WIDTH = 50;
 var MAP_PIN_HEIGHT = 70;
-// var MAP_PIN_MAIN_WIDTH = 65;
-// var MAP_PIN_MAIN_HEIGHT = 65;
+var MAP_PIN_MAIN_WIDTH = 65;
+var MAP_PIN_MAIN_HEIGHT = 85;
 var ESC_KEYCODE = 27;
 var ENTER_KEYCODE = 13;
-
-// форма, селекты комнат и гостей
-var INDEX_NO_GUESTS = 3;
-var VALUE_NO_GUESTS = 0;
+var VALUE_ROOM_NO_GUESTS = 100;
+var VALUE_CAPACITY_NO_GUESTS = 0;
+// координаты пина
+var START_PIN_MAIN_X = 570;
+var START_PIN_MAIN_Y = 375;
 
 var map = document.querySelector('.map');
 var mapPinMain = map.querySelector('.map__pin--main');
 var adForm = document.querySelector('.ad-form');
 var adFieldset = adForm.querySelectorAll('fieldset');
+var addressInput = adForm.querySelector('#address');
 var typeInput = adForm.querySelector('#type');
 var timeInInput = adForm.querySelector('#timein');
 var timeOutInput = adForm.querySelector('#timeout');
 var roomInput = adForm.querySelector('#room_number');
-var capacityInput = adForm.querySelector('#capacity');
+
+// словарь типов жилья и цены
+var typePrice = {
+  flat: '1000',
+  bungalo: '0',
+  house: '5000',
+  palace: '10000'
+};
 
 // рандомное число
 var getRandom = function (min, max) {
@@ -206,12 +215,13 @@ var disableFieldset = function () {
 };
 disableFieldset();
 
+// координаты главного пина
+var setCoords = function () {
+  addressInput.value = (mapPinMain.offsetLeft + Math.floor(MAP_PIN_MAIN_WIDTH * 0.5)) + ', ' + (mapPinMain.offsetTop + MAP_PIN_MAIN_HEIGHT);
+};
+setCoords();
+
 // переключение карты из неактивного состояния в активное
-var mapPin = map.querySelectorAll('.map__pin');
-var inputAddress = adForm.querySelector('#address');
-
-inputAddress.value = (map.offsetWidth * 0.5) + ', ' + (map.offsetHeight * 0.5);
-
 var onPinMainClick = function () {
   map.classList.remove('map--faded');
   adForm.classList.remove('ad-form--disabled');
@@ -224,9 +234,67 @@ var onPinMainClick = function () {
   }
 };
 
-mapPinMain.addEventListener('mouseup', onPinMainClick);
+// перетаскивание главного пина
+var onMouseDown = function (evt) {
+  evt.preventDefault();
+
+  var startCoords = {
+    x: evt.clientX,
+    y: evt.clientY
+  };
+
+  var onMouseMove = function (moveEvt) {
+    moveEvt.preventDefault();
+
+    var shift = {
+      x: startCoords.x - moveEvt.clientX,
+      y: startCoords.y - moveEvt.clientY
+    };
+
+    startCoords = {
+      x: moveEvt.clientX,
+      y: moveEvt.clientY
+    };
+
+    var mapPinMainX = mapPinMain.offsetLeft - shift.x;
+    var mapPinMainY = mapPinMain.offsetTop - shift.y;
+
+    if (mapPinMainY > LOCATION_Y_MAX - MAP_PIN_MAIN_HEIGHT) {
+      mapPinMainY = LOCATION_Y_MAX - MAP_PIN_MAIN_HEIGHT;
+    } else if (mapPinMainY < LOCATION_Y_MIN) {
+      mapPinMainY = LOCATION_Y_MIN;
+    }
+
+    if (mapPinMainX > map.offsetWidth - MAP_PIN_MAIN_WIDTH) {
+      mapPinMainX = map.offsetWidth - MAP_PIN_MAIN_WIDTH;
+    } else if (mapPinMainX < 0) {
+      mapPinMainX = 0;
+    }
+
+    mapPinMain.style.top = mapPinMainY + 'px';
+    mapPinMain.style.left = mapPinMainX + 'px';
+    addressInput.value = (mapPinMainX + Math.floor(MAP_PIN_MAIN_WIDTH * 0.5)) + ', ' + (mapPinMainY + MAP_PIN_MAIN_HEIGHT);
+  };
+
+  var onMouseUp = function (upEvt) {
+    upEvt.preventDefault();
+
+    document.removeEventListener('mousemove', onMouseMove);
+    document.removeEventListener('mouseup', onMouseUp);
+
+    onPinMainClick();
+  };
+
+  document.addEventListener('mousemove', onMouseMove);
+  document.addEventListener('mouseup', onMouseUp);
+};
+
+mapPinMain.addEventListener('mousedown', function (evt) {
+  onMouseDown(evt);
+});
 
 // прячем карточку
+var mapPin = map.querySelectorAll('.map__pin');
 var mapCard = map.querySelectorAll('.map__card');
 
 var hideCardElements = function () {
@@ -289,13 +357,6 @@ openPopup();
 closePopup();
 
 // выбор поля type
-var typePrice = {
-  flat: '1000',
-  bungalo: '0',
-  house: '5000',
-  palace: '10000'
-};
-
 var selectType = function () {
   var priceInput = adForm.querySelector('#price');
   var userType = typeInput.options[typeInput.selectedIndex].value;
@@ -303,6 +364,8 @@ var selectType = function () {
   priceInput.min = userPrice;
   priceInput.placeholder = userPrice;
 };
+
+selectType();
 
 typeInput.addEventListener('change', function () {
   selectType();
@@ -317,43 +380,34 @@ timeOutInput.addEventListener('change', function () {
   timeInInput.value = timeOutInput.value;
 });
 
-// выбор поля rooms
-var selectRoom = function () {
-  var userRoomIndex = parseInt(roomInput.selectedIndex, 10);
-  var userRoom = roomInput.options[userRoomIndex].value;
-
-  for (var i = 0; i < capacityInput.options.length; i++) {
-    capacityInput.options[i].disabled = true;
-  }
-
-  if (userRoomIndex === INDEX_NO_GUESTS) {
-    capacityInput.options[INDEX_NO_GUESTS].disabled = false;
-    return;
-  }
-
-  for (var j = 0; j < capacityInput.options.length; j++) {
-    if (capacityInput.options[j].value <= userRoom && parseInt(capacityInput.options[j].value, 10) !== VALUE_NO_GUESTS) {
-      capacityInput.options[j].disabled = false;
-    }
-  }
-};
-
 // синхронизация комнат и гостей
 var syncRoomsGuests = function () {
-  selectRoom();
-  if (roomInput.options[INDEX_NO_GUESTS].selected) {
-    capacityInput.options[INDEX_NO_GUESTS].selected = true;
-  } else {
-    for (var i = 0; i < capacityInput.options.length; i++) {
-      if (capacityInput.options[i].value === roomInput.options[roomInput.selectedIndex].value) {
-        capacityInput.options[i].selected = true;
-      }
+  var capacityInput = adForm.querySelectorAll('#capacity option');
+
+  capacityInput.forEach(function (item) {
+    var userRoom = parseInt(roomInput.value, 10);
+    var value = parseInt(item.value, 10);
+    if (userRoom === VALUE_ROOM_NO_GUESTS) {
+      item.disabled = (value !== VALUE_CAPACITY_NO_GUESTS);
+      item.selected = (value === VALUE_CAPACITY_NO_GUESTS);
+    } else {
+      item.disabled = (value === VALUE_CAPACITY_NO_GUESTS || value > userRoom);
+      item.selected = (value === userRoom);
     }
-  }
+  });
 };
 
 syncRoomsGuests();
 
 roomInput.addEventListener('change', function () {
   syncRoomsGuests();
+});
+
+// сброс формы, координат главного пина
+adForm.addEventListener('reset', function () {
+  mapPinMain.style.top = START_PIN_MAIN_Y + 'px';
+  mapPinMain.style.left = START_PIN_MAIN_X + 'px';
+  setTimeout(function () {
+    setCoords();
+  });
 });
