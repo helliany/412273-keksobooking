@@ -26,7 +26,6 @@ var VALUE_ROOM_NO_GUESTS = 100;
 var VALUE_CAPACITY_NO_GUESTS = 0;
 // координаты пина
 var START_PIN_MAIN_X = 570;
-var START_PIN_MAIN_Y = 375;
 
 var map = document.querySelector('.map');
 var mapPinMain = map.querySelector('.map__pin--main');
@@ -213,12 +212,15 @@ var disableFieldset = function () {
     adFieldset[i].disabled = true;
   }
 };
+
 disableFieldset();
 
 // координаты главного пина
 var setCoords = function () {
-  addressInput.value = (mapPinMain.offsetLeft + Math.floor(MAP_PIN_MAIN_WIDTH * 0.5)) + ', ' + (mapPinMain.offsetTop + MAP_PIN_MAIN_HEIGHT);
+  addressInput.readOnly = true;
+  addressInput.value = (mapPinMain.offsetLeft + Math.floor(MAP_PIN_MAIN_WIDTH * 0.5)) + ', ' + (mapPinMain.offsetTop + Math.floor(MAP_PIN_MAIN_WIDTH * 0.5));
 };
+
 setCoords();
 
 // переключение карты из неактивного состояния в активное
@@ -233,65 +235,6 @@ var onPinMainClick = function () {
     mapPin[j].classList.remove('hidden');
   }
 };
-
-// перетаскивание главного пина
-var onMouseDown = function (evt) {
-  evt.preventDefault();
-
-  var startCoords = {
-    x: evt.clientX,
-    y: evt.clientY
-  };
-
-  var onMouseMove = function (moveEvt) {
-    moveEvt.preventDefault();
-
-    var shift = {
-      x: startCoords.x - moveEvt.clientX,
-      y: startCoords.y - moveEvt.clientY
-    };
-
-    startCoords = {
-      x: moveEvt.clientX,
-      y: moveEvt.clientY
-    };
-
-    var mapPinMainX = mapPinMain.offsetLeft - shift.x;
-    var mapPinMainY = mapPinMain.offsetTop - shift.y;
-
-    if (mapPinMainY > LOCATION_Y_MAX - MAP_PIN_MAIN_HEIGHT) {
-      mapPinMainY = LOCATION_Y_MAX - MAP_PIN_MAIN_HEIGHT;
-    } else if (mapPinMainY < LOCATION_Y_MIN) {
-      mapPinMainY = LOCATION_Y_MIN;
-    }
-
-    if (mapPinMainX > map.offsetWidth - MAP_PIN_MAIN_WIDTH) {
-      mapPinMainX = map.offsetWidth - MAP_PIN_MAIN_WIDTH;
-    } else if (mapPinMainX < 0) {
-      mapPinMainX = 0;
-    }
-
-    mapPinMain.style.top = mapPinMainY + 'px';
-    mapPinMain.style.left = mapPinMainX + 'px';
-    addressInput.value = (mapPinMainX + Math.floor(MAP_PIN_MAIN_WIDTH * 0.5)) + ', ' + (mapPinMainY + MAP_PIN_MAIN_HEIGHT);
-  };
-
-  var onMouseUp = function (upEvt) {
-    upEvt.preventDefault();
-
-    document.removeEventListener('mousemove', onMouseMove);
-    document.removeEventListener('mouseup', onMouseUp);
-
-    onPinMainClick();
-  };
-
-  document.addEventListener('mousemove', onMouseMove);
-  document.addEventListener('mouseup', onMouseUp);
-};
-
-mapPinMain.addEventListener('mousedown', function (evt) {
-  onMouseDown(evt);
-});
 
 // прячем карточку
 var mapPin = map.querySelectorAll('.map__pin');
@@ -353,9 +296,6 @@ var closePopup = function () {
   }
 };
 
-openPopup();
-closePopup();
-
 // выбор поля type
 var selectType = function () {
   var priceInput = adForm.querySelector('#price');
@@ -364,8 +304,6 @@ var selectType = function () {
   priceInput.min = userPrice;
   priceInput.placeholder = userPrice;
 };
-
-selectType();
 
 typeInput.addEventListener('change', function () {
   selectType();
@@ -397,17 +335,79 @@ var syncRoomsGuests = function () {
   });
 };
 
-syncRoomsGuests();
-
 roomInput.addEventListener('change', function () {
   syncRoomsGuests();
 });
 
+// перетаскивание главного пина
+var onMouseDown = function (evt) {
+  evt.preventDefault();
+
+  var startCoords = {
+    x: evt.clientX,
+    y: evt.clientY
+  };
+
+  var onMouseMove = function (moveEvt) {
+    moveEvt.preventDefault();
+
+    var shift = {
+      x: startCoords.x - moveEvt.clientX,
+      y: startCoords.y - moveEvt.clientY
+    };
+
+    startCoords = {
+      x: moveEvt.clientX,
+      y: moveEvt.clientY
+    };
+
+    var mapPinMainX = mapPinMain.offsetLeft - shift.x;
+    var mapPinMainY = mapPinMain.offsetTop - shift.y;
+
+    if (mapPinMainY > LOCATION_Y_MAX - MAP_PIN_MAIN_HEIGHT) {
+      mapPinMainY = LOCATION_Y_MAX - MAP_PIN_MAIN_HEIGHT;
+    } else if (mapPinMainY < LOCATION_Y_MIN) {
+      mapPinMainY = LOCATION_Y_MIN;
+    }
+
+    if (mapPinMainX > map.offsetWidth - MAP_PIN_MAIN_WIDTH) {
+      mapPinMainX = map.offsetWidth - MAP_PIN_MAIN_WIDTH;
+    } else if (mapPinMainX < 0) {
+      mapPinMainX = 0;
+    }
+
+    mapPinMain.style.top = mapPinMainY + 'px';
+    mapPinMain.style.left = mapPinMainX + 'px';
+    addressInput.value = (mapPinMainX + Math.floor(MAP_PIN_MAIN_WIDTH * 0.5)) + ', ' + (mapPinMainY + MAP_PIN_MAIN_HEIGHT);
+  };
+
+  var onMouseUp = function (upEvt) {
+    upEvt.preventDefault();
+
+    document.removeEventListener('mousemove', onMouseMove);
+    document.removeEventListener('mouseup', onMouseUp);
+
+    onPinMainClick();
+    openPopup();
+    closePopup();
+    selectType();
+    syncRoomsGuests();
+  };
+
+  document.addEventListener('mousemove', onMouseMove);
+  document.addEventListener('mouseup', onMouseUp);
+};
+
+mapPinMain.addEventListener('mousedown', function (evt) {
+  onMouseDown(evt);
+});
+
 // сброс формы, координат главного пина
 adForm.addEventListener('reset', function () {
-  mapPinMain.style.top = START_PIN_MAIN_Y + 'px';
+  mapPinMain.style.top = (map.offsetHeight * 0.5) + 'px';
   mapPinMain.style.left = START_PIN_MAIN_X + 'px';
   setTimeout(function () {
     setCoords();
+    addressInput.value = (mapPinMain.offsetLeft + Math.floor(MAP_PIN_MAIN_WIDTH * 0.5)) + ', ' + (mapPinMain.offsetTop + MAP_PIN_MAIN_HEIGHT);
   });
 });
