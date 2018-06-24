@@ -1,14 +1,14 @@
 'use strict';
 
-var TITLE = ['Большая уютная квартира', 'Маленькая неуютная квартира',
+var TITLES = ['Большая уютная квартира', 'Маленькая неуютная квартира',
   'Огромный прекрасный дворец', 'Маленький ужасный дворец', 'Красивый гостевой домик',
   'Некрасивый негостеприимный домик', 'Уютное бунгало далеко от моря', 'Неуютное бунгало по колено в воде'];
 var PRICE_MIN = 1000;
 var PRICE_MAX = 1000000;
-var TYPE = ['palace', 'flat', 'house', 'bungalo'];
+var TYPES = ['palace', 'flat', 'house', 'bungalo'];
 var ROOMS_MIN = 1;
 var ROOMS_MAX = 5;
-var CHECK = ['12:00', '13:00', '14:00'];
+var CHECKS = ['12:00', '13:00', '14:00'];
 var FEATURES = ['wifi', 'dishwasher', 'parking', 'washer', 'elevator', 'conditioner'];
 var PHOTOS_LENGTH = 3;
 var LOCATION_X_MIN = 300;
@@ -98,7 +98,7 @@ var renderPhoto = function () {
 // создание массива объявлений
 var fillArray = function () {
   var randomAvatar = shuffleArr(getArr(1, ADS_LENGTH));
-  var randomTitle = shuffleArr(TITLE);
+  var randomTitle = shuffleArr(TITLES);
   var photosArray = renderPhoto();
   var adsArray = [];
 
@@ -114,11 +114,11 @@ var fillArray = function () {
         title: randomTitle[j],
         address: locationX + ', ' + locationY,
         price: getRandom(PRICE_MIN, PRICE_MAX),
-        type: getRandomElement(TYPE),
+        type: getRandomElement(TYPES),
         rooms: getRandom(ROOMS_MIN, ROOMS_MAX),
         guests: getRandom(ROOMS_MIN, ROOMS_MAX),
-        checkin: getRandomElement(CHECK),
-        checkout: getRandomElement(CHECK),
+        checkin: getRandomElement(CHECKS),
+        checkout: getRandomElement(CHECKS),
         features: getRandomLength(shuffleArr(FEATURES)),
         description: '',
         photos: shuffleArr(photosArray)
@@ -161,14 +161,19 @@ var renderMapCard = function (mapCard) {
   mapCardElement.classList.add('hidden');
 
   var getType = function (type) {
-    if (type === 'flat') {
-      type = 'Квартира';
-    } else if (type === 'bungalo') {
-      type = 'Бунгало';
-    } else if (type === 'house') {
-      type = 'Дом';
-    } else if (type === 'palace') {
-      type = 'Дворец';
+    switch (type) {
+      case 'flat':
+        type = 'Квартира';
+        break;
+      case 'bungalo':
+        type = 'Бунгало';
+        break;
+      case 'house':
+        type = 'Дом';
+        break;
+      case 'palace':
+        type = 'Дворец';
+        break;
     }
     return type;
   };
@@ -228,59 +233,18 @@ var onPinMainClick = function () {
 };
 
 // прячем карточку
-var hideCardElements = function () {
+var hideElements = function () {
   for (var i = 0; i < mapCard.length; i++) {
     mapCard[i].classList.add('hidden');
   }
 };
 
 // показываем карточку
-var openCardElements = function (evt) {
+var openElements = function (evt) {
   for (var i = 0; i < mapPin.length; i++) {
     if (mapPin[i] === evt.currentTarget && !mapPin[i].matches('.map__pin--main')) {
       mapCard[i - 1].classList.remove('hidden');
     }
-  }
-};
-
-// показываем/прячем по клику/enter на пине
-var openPopup = function () {
-  for (var i = 0; i < mapPin.length; i++) {
-    mapPin[i].addEventListener('click', function (evt) {
-      hideCardElements();
-      openCardElements(evt);
-    });
-
-    mapPin[i].addEventListener('keydown', function (evt) {
-      if (evt.keyCode === ENTER_KEYCODE) {
-        hideCardElements();
-        openCardElements(evt);
-      }
-    });
-  }
-};
-
-var onPopupEscPress = function (evt) {
-  if (evt.keyCode === ESC_KEYCODE) {
-    hideCardElements();
-  }
-};
-
-// прячем по клику/enter на кнопке, esc
-var closePopup = function () {
-  var popupClose = map.querySelectorAll('.popup__close');
-  for (var i = 0; i < popupClose.length; i++) {
-    popupClose[i].addEventListener('click', function () {
-      hideCardElements();
-    });
-
-    popupClose[i].addEventListener('keydown', function (evt) {
-      if (evt.keyCode === ENTER_KEYCODE) {
-        hideCardElements();
-      }
-    });
-
-    document.addEventListener('keydown', onPopupEscPress);
   }
 };
 
@@ -392,22 +356,49 @@ var disableForm = function () {
   addPinElements();
   addCardElements();
   setCoords();
+  selectType();
+  syncRoomsGuests();
 };
 
 disableForm();
 
 var mapPin = map.querySelectorAll('.map__pin');
 var mapCard = map.querySelectorAll('.map__card');
+var popupClose = map.querySelectorAll('.popup__close');
 
-// форма разблокирована
-var enableForm = function () {
-  openPopup();
-  closePopup();
-  selectType();
-  syncRoomsGuests();
-};
+// показываем/прячем по клику/enter на пине
+mapPin.forEach(function (mapItem) {
+  mapItem.addEventListener('click', function (evt) {
+    hideElements();
+    openElements(evt);
+  });
 
-enableForm();
+  mapItem.addEventListener('keydown', function (evt) {
+    if (evt.keyCode === ENTER_KEYCODE) {
+      hideElements();
+      openElements(evt);
+    }
+  });
+});
+
+// прячем по клику/enter на кнопке, esc
+popupClose.forEach(function (popupCloseItem) {
+  popupCloseItem.addEventListener('click', function () {
+    hideElements();
+  });
+
+  popupCloseItem.addEventListener('keydown', function (evt) {
+    if (evt.keyCode === ENTER_KEYCODE) {
+      hideElements();
+    }
+  });
+
+  document.addEventListener('keydown', function (evt) {
+    if (evt.keyCode === ESC_KEYCODE) {
+      hideElements();
+    }
+  });
+});
 
 // сброс формы, координат главного пина
 var resetForm = function () {
