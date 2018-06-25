@@ -45,47 +45,6 @@ var typePrice = {
   palace: '10000'
 };
 
-// рандомное число
-var getRandom = function (min, max) {
-  return Math.floor(min + Math.random() * (max + 1 - min));
-};
-
-// рандомный элемент массива
-var getRandomElement = function (arr) {
-  return arr[Math.floor((Math.random() * arr.length))];
-};
-
-// перемешать массив
-var shuffleArr = function (array) {
-  var currentIndex = array.length;
-  var temporaryValue;
-  var randomIndex;
-
-  while (currentIndex) {
-    randomIndex = Math.floor(Math.random() * currentIndex);
-    currentIndex -= 1;
-
-    temporaryValue = array[currentIndex];
-    array[currentIndex] = array[randomIndex];
-    array[randomIndex] = temporaryValue;
-  }
-  return array;
-};
-
-// создать массив в диапазоне
-var getArr = function (min, max) {
-  var array = [];
-  for (var i = min; i <= max; i++) {
-    array.push(i);
-  }
-  return array;
-};
-
-// рандомная длина массива
-var getRandomLength = function (array) {
-  return array.slice(getRandom(0, FEATURES.length - 1));
-};
-
 // создание массива фото
 var renderPhoto = function () {
   var arr = [];
@@ -97,14 +56,14 @@ var renderPhoto = function () {
 
 // создание массива объявлений
 var fillArray = function () {
-  var randomAvatar = shuffleArr(getArr(1, ADS_LENGTH));
-  var randomTitle = shuffleArr(TITLES);
+  var randomAvatar = window.utils.shuffleArr(window.utils.getArr(1, ADS_LENGTH));
+  var randomTitle = window.utils.shuffleArr(TITLES);
   var photosArray = renderPhoto();
   var adsArray = [];
 
   for (var j = 0; j < ADS_LENGTH; j++) {
-    var locationX = getRandom(LOCATION_X_MIN, LOCATION_X_MAX);
-    var locationY = getRandom(LOCATION_Y_MIN, LOCATION_Y_MAX);
+    var locationX = window.utils.getRandom(LOCATION_X_MIN, LOCATION_X_MAX);
+    var locationY = window.utils.getRandom(LOCATION_Y_MIN, LOCATION_Y_MAX);
 
     adsArray[j] = {
       author: {
@@ -113,15 +72,15 @@ var fillArray = function () {
       offer: {
         title: randomTitle[j],
         address: locationX + ', ' + locationY,
-        price: getRandom(PRICE_MIN, PRICE_MAX),
-        type: getRandomElement(TYPES),
-        rooms: getRandom(ROOMS_MIN, ROOMS_MAX),
-        guests: getRandom(ROOMS_MIN, ROOMS_MAX),
-        checkin: getRandomElement(CHECKS),
-        checkout: getRandomElement(CHECKS),
-        features: getRandomLength(shuffleArr(FEATURES)),
+        price: window.utils.getRandom(PRICE_MIN, PRICE_MAX),
+        type: window.utils.getRandomElement(TYPES),
+        rooms: window.utils.getRandom(ROOMS_MIN, ROOMS_MAX),
+        guests: window.utils.getRandom(ROOMS_MIN, ROOMS_MAX),
+        checkin: window.utils.getRandomElement(CHECKS),
+        checkout: window.utils.getRandomElement(CHECKS),
+        features: window.utils.getRandomLength(window.utils.shuffleArr(FEATURES)),
         description: '',
-        photos: shuffleArr(photosArray)
+        photos: window.utils.shuffleArr(photosArray)
       },
       location: {
         x: locationX,
@@ -220,7 +179,7 @@ var setCoords = function () {
 };
 
 // переключение карты из неактивного состояния в активное
-var onPinMainClick = function () {
+var onMapPinMainClick = function () {
   map.classList.remove('map--faded');
   adForm.classList.remove('ad-form--disabled');
   for (var i = 0; i < adFieldset.length; i++) {
@@ -339,7 +298,7 @@ var onMouseDown = function (evt) {
     document.removeEventListener('mousemove', onMouseMove);
     document.removeEventListener('mouseup', onMouseUp);
 
-    onPinMainClick();
+    onMapPinMainClick();
   };
 
   document.addEventListener('mousemove', onMouseMove);
@@ -401,15 +360,16 @@ popupClose.forEach(function (popupCloseItem) {
 });
 
 // сброс формы, координат главного пина
-var resetForm = function () {
+var onAdFormReset = function () {
   mapPinMain.style.top = (map.offsetHeight * 0.5) + 'px';
   mapPinMain.style.left = START_PIN_MAIN_X + 'px';
   setTimeout(function () {
-    setCoords();
+    selectType();
+    syncRoomsGuests();
     addressField.value = (mapPinMain.offsetLeft + Math.floor(MAP_PIN_MAIN_WIDTH * 0.5)) + ', ' + (mapPinMain.offsetTop + MAP_PIN_MAIN_HEIGHT);
   });
 };
 
 adForm.addEventListener('reset', function () {
-  resetForm();
+  onAdFormReset();
 });
