@@ -179,7 +179,7 @@ var setCoords = function () {
 };
 
 // переключение карты из неактивного состояния в активное
-var onMapPinMainClick = function () {
+var enableForm = function () {
   map.classList.remove('map--faded');
   adForm.classList.remove('ad-form--disabled');
   for (var i = 0; i < adFieldset.length; i++) {
@@ -188,22 +188,6 @@ var onMapPinMainClick = function () {
 
   for (var j = 0; j < mapPin.length; j++) {
     mapPin[j].classList.remove('hidden');
-  }
-};
-
-// прячем карточку
-var hideElements = function () {
-  for (var i = 0; i < mapCard.length; i++) {
-    mapCard[i].classList.add('hidden');
-  }
-};
-
-// показываем карточку
-var openElements = function (evt) {
-  for (var i = 0; i < mapPin.length; i++) {
-    if (mapPin[i] === evt.currentTarget && !mapPin[i].matches('.map__pin--main')) {
-      mapCard[i - 1].classList.remove('hidden');
-    }
   }
 };
 
@@ -298,7 +282,7 @@ var onMouseDown = function (evt) {
     document.removeEventListener('mousemove', onMouseMove);
     document.removeEventListener('mouseup', onMouseUp);
 
-    onMapPinMainClick();
+    enableForm();
   };
 
   document.addEventListener('mousemove', onMouseMove);
@@ -325,20 +309,48 @@ var mapPin = map.querySelectorAll('.map__pin');
 var mapCard = map.querySelectorAll('.map__card');
 var popupClose = map.querySelectorAll('.popup__close');
 
-// показываем/прячем по клику/enter на пине
-mapPin.forEach(function (mapItem) {
-  mapItem.addEventListener('click', function (evt) {
-    hideElements();
-    openElements(evt);
+// прячем карточку
+var hideElements = function () {
+  mapCard.forEach(function (cardItem) {
+    cardItem.classList.add('hidden');
   });
+};
 
-  mapItem.addEventListener('keydown', function (evt) {
-    if (evt.keyCode === ENTER_KEYCODE) {
-      hideElements();
-      openElements(evt);
+// показываем карточку
+var openElements = function (evt) {
+  mapPin.forEach(function (pinItem, index) {
+    if (pinItem === evt.currentTarget && !pinItem.matches('.map__pin--main')) {
+      mapCard[index - 1].classList.remove('hidden');
     }
   });
+};
+
+mapPin.addEventListener('click', function (evt) {
+  hideElements();
+  openElements(evt);
 });
+
+mapPin.addEventListener('keydown', function (evt) {
+  if (evt.keyCode === ENTER_KEYCODE) {
+    hideElements();
+    openElements(evt);
+  }
+});
+
+// // показываем/прячем по клику/enter на пине
+// mapPin.forEach(function (mapItem) {
+//   mapItem.addEventListener('click', function (evt) {
+//     hideElements();
+//     openElements(evt);
+//   });
+//
+//   mapItem.addEventListener('keydown', function (evt) {
+//     if (evt.keyCode === ENTER_KEYCODE) {
+//       hideElements();
+//       openElements(evt);
+//     }
+//   });
+// });
 
 // прячем по клику/enter на кнопке, esc
 popupClose.forEach(function (popupCloseItem) {
