@@ -175,7 +175,7 @@ var disableFieldset = function () {
 
 // координаты главного пина
 var setCoords = function () {
-  addressField.value = (mapPinMain.offsetLeft + Math.floor(MAP_PIN_MAIN_WIDTH * 0.5)) + ', ' + (mapPinMain.offsetTop + Math.floor(MAP_PIN_MAIN_WIDTH * 0.5));
+  addressField.value = (mapPinMain.offsetLeft + Math.floor(MAP_PIN_MAIN_WIDTH * 0.5)) + ', ' + (mapPinMain.offsetTop + MAP_PIN_MAIN_HEIGHT);
 };
 
 // переключение карты из неактивного состояния в активное
@@ -317,40 +317,26 @@ var hideElements = function () {
 };
 
 // показываем карточку
-var openElements = function (evt) {
-  mapPin.forEach(function (pinItem, index) {
-    if (pinItem === evt.currentTarget && !pinItem.matches('.map__pin--main')) {
-      mapCard[index - 1].classList.remove('hidden');
-    }
-  });
+var openElements = function (evt, index) {
+  hideElements();
+
+  if (!evt.currentTarget.matches('.map__pin--main')) {
+    mapCard[index - 1].classList.remove('hidden');
+  }
 };
 
-mapPin.addEventListener('click', function (evt) {
-  hideElements();
-  openElements(evt);
-});
+// показываем по клику/enter на пине
+mapPin.forEach(function (mapItem, index) {
+  mapItem.addEventListener('click', function (evt) {
+    openElements(evt, index);
+  });
 
-mapPin.addEventListener('keydown', function (evt) {
-  if (evt.keyCode === ENTER_KEYCODE) {
-    hideElements();
-    openElements(evt);
-  }
+  mapItem.addEventListener('keydown', function (evt) {
+    if (evt.keyCode === ENTER_KEYCODE) {
+      openElements(evt, index);
+    }
+  });
 });
-
-// // показываем/прячем по клику/enter на пине
-// mapPin.forEach(function (mapItem) {
-//   mapItem.addEventListener('click', function (evt) {
-//     hideElements();
-//     openElements(evt);
-//   });
-//
-//   mapItem.addEventListener('keydown', function (evt) {
-//     if (evt.keyCode === ENTER_KEYCODE) {
-//       hideElements();
-//       openElements(evt);
-//     }
-//   });
-// });
 
 // прячем по клику/enter на кнопке, esc
 popupClose.forEach(function (popupCloseItem) {
@@ -378,7 +364,7 @@ var onAdFormReset = function () {
   setTimeout(function () {
     selectType();
     syncRoomsGuests();
-    addressField.value = (mapPinMain.offsetLeft + Math.floor(MAP_PIN_MAIN_WIDTH * 0.5)) + ', ' + (mapPinMain.offsetTop + MAP_PIN_MAIN_HEIGHT);
+    setCoords();
   });
 };
 
