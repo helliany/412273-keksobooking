@@ -38,7 +38,7 @@ var timeOutField = adForm.querySelector('#timeout');
 var roomField = adForm.querySelector('#room_number');
 
 // словарь типов жилья и цены
-var typePrice = {
+var typeToPrice = {
   flat: '1000',
   bungalo: '0',
   house: '5000',
@@ -189,13 +189,15 @@ var enableForm = function () {
   for (var j = 0; j < mapPin.length; j++) {
     mapPin[j].classList.remove('hidden');
   }
+
+  initializePopup();
 };
 
 // выбор поля type
 var selectType = function () {
   var priceField = adForm.querySelector('#price');
   var userType = typeField.options[typeField.selectedIndex].value;
-  var userPrice = typePrice[userType];
+  var userPrice = typeToPrice[userType];
   priceField.min = userPrice;
   priceField.placeholder = userPrice;
 };
@@ -307,7 +309,7 @@ disableForm();
 
 var mapPin = map.querySelectorAll('.map__pin');
 var mapCard = map.querySelectorAll('.map__card');
-var popupClose = map.querySelectorAll('.popup__close');
+var btnPopupClose = map.querySelectorAll('.popup__close');
 
 // прячем карточку
 var hideElements = function () {
@@ -325,37 +327,39 @@ var openElements = function (evt, index) {
   }
 };
 
-// показываем по клику/enter на пине
-mapPin.forEach(function (mapItem, index) {
-  mapItem.addEventListener('click', function (evt) {
-    openElements(evt, index);
-  });
-
-  mapItem.addEventListener('keydown', function (evt) {
-    if (evt.keyCode === ENTER_KEYCODE) {
+var initializePopup = function () {
+  // показываем по клику/enter на пине
+  mapPin.forEach(function (mapItem, index) {
+    mapItem.addEventListener('click', function (evt) {
       openElements(evt, index);
-    }
-  });
-});
+    });
 
-// прячем по клику/enter на кнопке, esc
-popupClose.forEach(function (popupCloseItem) {
-  popupCloseItem.addEventListener('click', function () {
-    hideElements();
+    mapItem.addEventListener('keydown', function (evt) {
+      if (evt.keyCode === ENTER_KEYCODE) {
+        openElements(evt, index);
+      }
+    });
   });
 
-  popupCloseItem.addEventListener('keydown', function (evt) {
-    if (evt.keyCode === ENTER_KEYCODE) {
+  // прячем по клику/enter на кнопке, esc
+  btnPopupClose.forEach(function (btnCloseItem) {
+    btnCloseItem.addEventListener('click', function () {
       hideElements();
-    }
-  });
+    });
 
-  document.addEventListener('keydown', function (evt) {
-    if (evt.keyCode === ESC_KEYCODE) {
-      hideElements();
-    }
+    btnCloseItem.addEventListener('keydown', function (evt) {
+      if (evt.keyCode === ENTER_KEYCODE) {
+        hideElements();
+      }
+    });
+
+    document.addEventListener('keydown', function (evt) {
+      if (evt.keyCode === ESC_KEYCODE) {
+        hideElements();
+      }
+    });
   });
-});
+};
 
 // сброс формы, координат главного пина
 var onAdFormReset = function () {
