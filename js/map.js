@@ -24,7 +24,6 @@ var ESC_KEYCODE = 27;
 var ENTER_KEYCODE = 13;
 var VALUE_ROOM_NO_GUESTS = 100;
 var VALUE_CAPACITY_NO_GUESTS = 0;
-// координаты пина
 var START_PIN_MAIN_X = 570;
 
 var map = document.querySelector('.map');
