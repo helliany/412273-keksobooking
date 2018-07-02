@@ -142,9 +142,11 @@
       input.addEventListener('input', function () {
         validateInput(input);
       });
+      adForm.addEventListener('reset', function () {
+        input.classList.remove('ad-form__element--border-red');
+      });
     });
   };
-  // validateFields();
 
   // ошибка загрузки
   var errorHandler = function (errorMessage) {
