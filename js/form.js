@@ -143,7 +143,7 @@
         validateInput(input);
       });
       adForm.addEventListener('reset', function () {
-        input.classList.remove('ad-form__element--border-red');
+        validateInput(input);
       });
     });
   };
