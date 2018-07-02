@@ -11,22 +11,22 @@
   var map = document.querySelector('.map');
   var mapPinMain = map.querySelector('.map__pin--main');
   var adForm = document.querySelector('.ad-form');
-  var adFieldset = adForm.querySelectorAll('fieldset');
   var addressField = adForm.querySelector('#address');
 
   // переключение карты из неактивного состояния в активное
   var enableForm = function () {
+    var mapPin = map.querySelectorAll('.map__pin');
+
     map.classList.remove('map--faded');
     adForm.classList.remove('ad-form--disabled');
-    for (var i = 0; i < adFieldset.length; i++) {
-      adFieldset[i].disabled = false;
-    }
+    window.form.disableFieldset(false);
 
     for (var j = 0; j < mapPin.length; j++) {
       mapPin[j].classList.remove('hidden');
     }
 
     initializePopup();
+    window.form.validateFields();
   };
 
   // перетаскивание главного пина
@@ -88,11 +88,26 @@
     onMouseDown(evt);
   });
 
+  // ошибка загрузки
+  var errorHandler = function (errorMessage) {
+    var node = document.createElement('div');
+    node.style = 'z-index: 2; width: 100%; height: 100%; padding-top: 300px; text-align: center; background-color: rgba(0, 0, 0, 0.8)';
+    node.style.position = 'fixed';
+    node.style.left = 0;
+    node.style.top = 0;
+    node.style.fontSize = '50px';
+    node.style.color = '#ffffff';
+    node.style.fontWeight = '700';
+
+    node.textContent = errorMessage;
+    document.body.insertAdjacentElement('afterbegin', node);
+  };
+
   // форма заблокирована
   var disableForm = function () {
-    window.form.disableFieldset();
-    window.pin.addElements();
-    window.card.addElements();
+    window.form.disableFieldset(true);
+    window.backend.load(window.pin.addElements, errorHandler);
+    window.backend.load(window.card.addElements, errorHandler);
     window.form.setCoords();
     window.form.selectType();
     window.form.syncRoomsGuests();
@@ -100,20 +115,10 @@
 
   disableForm();
 
-  var mapPin = map.querySelectorAll('.map__pin');
-  var mapCard = map.querySelectorAll('.map__card');
-  var btnPopupClose = map.querySelectorAll('.popup__close');
-
-  // прячем карточку
-  var hideElements = function () {
-    mapCard.forEach(function (cardItem) {
-      cardItem.classList.add('hidden');
-    });
-  };
-
   // показываем карточку
-  var openElements = function (evt, index) {
-    hideElements();
+  var openCard = function (evt, index) {
+    var mapCard = map.querySelectorAll('.map__card');
+    window.form.hideCard();
 
     if (!evt.currentTarget.matches('.map__pin--main')) {
       mapCard[index - 1].classList.remove('hidden');
@@ -121,15 +126,20 @@
   };
 
   var initializePopup = function () {
+    var mapPin = map.querySelectorAll('.map__pin');
+    var btnPopupClose = map.querySelectorAll('.popup__close');
+
     // показываем по клику/enter на пине
     mapPin.forEach(function (mapItem, index) {
       mapItem.addEventListener('click', function (evt) {
-        openElements(evt, index);
+        openCard(evt, index);
+        evt.currentTarget.classList.add('map__pin--active');
       });
 
       mapItem.addEventListener('keydown', function (evt) {
         if (evt.keyCode === ENTER_KEYCODE) {
-          openElements(evt, index);
+          openCard(evt, index);
+          evt.currentTarget.classList.add('map__pin--active');
         }
       });
     });
@@ -137,18 +147,18 @@
     // прячем по клику/enter на кнопке, esc
     btnPopupClose.forEach(function (btnCloseItem) {
       btnCloseItem.addEventListener('click', function () {
-        hideElements();
+        window.form.hideCard();
       });
 
       btnCloseItem.addEventListener('keydown', function (evt) {
         if (evt.keyCode === ENTER_KEYCODE) {
-          hideElements();
+          window.form.hideCard();
         }
       });
 
       document.addEventListener('keydown', function (evt) {
         if (evt.keyCode === ESC_KEYCODE) {
-          hideElements();
+          window.form.hideCard();
         }
       });
     });

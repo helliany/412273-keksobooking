@@ -19,11 +19,12 @@
   };
 
   // отрисовка меток
-  var addElements = function () {
+  var addElements = function (pin) {
     var mapList = map.querySelector('.map__pins');
     var fragment = document.createDocumentFragment();
+    window.arrPin = window.utils.shuffleArr(pin);
     for (var i = 0; i < ADS_LENGTH; i++) {
-      fragment.appendChild(renderMapPin(window.data[i]));
+      fragment.appendChild(renderMapPin(window.arrPin[i]));
     }
     mapList.appendChild(fragment);
   };

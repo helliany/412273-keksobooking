@@ -1,8 +1,6 @@
 'use strict';
 
 (function () {
-  var ADS_LENGTH = 8;
-
   var map = document.querySelector('.map');
 
   // создание карточек
@@ -52,8 +50,8 @@
   var addElements = function () {
     var mapFilters = map.querySelector('.map__filters-container');
     var fragment = document.createDocumentFragment();
-    for (var i = 0; i < ADS_LENGTH; i++) {
-      fragment.appendChild(renderMapCard(window.data[i]));
+    for (var i = 0; i < window.arrPin.length; i++) {
+      fragment.appendChild(renderMapCard(window.arrPin[i]));
     }
     map.insertBefore(fragment, mapFilters);
   };
