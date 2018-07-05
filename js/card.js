@@ -46,17 +46,19 @@
     return mapCardElement;
   };
 
-  // отрисовка карточек
-  var addElements = function () {
+  // загрузка данных
+  var loadElements = function () {
     var mapFilters = map.querySelector('.map__filters-container');
-    var fragment = document.createDocumentFragment();
-    for (var i = 0; i < window.arrPin.length; i++) {
-      fragment.appendChild(renderMapCard(window.arrPin[i]));
-    }
-    map.insertBefore(fragment, mapFilters);
+    var onLoad = function (data) {
+      map.insertBefore(window.pin.getElements(data, renderMapCard), mapFilters);
+    };
+    var onError = function (msg) {
+      window.form.errorHandler(msg);
+    };
+    window.backend.load(onLoad, onError);
   };
 
   window.card = {
-    addElements: addElements
+    loadElements: loadElements
   };
 })();

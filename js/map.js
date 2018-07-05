@@ -21,11 +21,11 @@
     adForm.classList.remove('ad-form--disabled');
     window.form.disableFieldset(false);
 
-    for (var j = 0; j < mapPin.length; j++) {
-      mapPin[j].classList.remove('hidden');
-    }
+    mapPin.forEach(function (pins) {
+      pins.classList.remove('hidden');
+    });
 
-    initializePopup();
+    initializePopup(mapPin);
     window.form.validateFields();
   };
 
@@ -88,26 +88,11 @@
     onMouseDown(evt);
   });
 
-  // ошибка загрузки
-  var errorHandler = function (errorMessage) {
-    var node = document.createElement('div');
-    node.style = 'z-index: 2; width: 100%; height: 100%; padding-top: 300px; text-align: center; background-color: rgba(0, 0, 0, 0.8)';
-    node.style.position = 'fixed';
-    node.style.left = 0;
-    node.style.top = 0;
-    node.style.fontSize = '50px';
-    node.style.color = '#ffffff';
-    node.style.fontWeight = '700';
-
-    node.textContent = errorMessage;
-    document.body.insertAdjacentElement('afterbegin', node);
-  };
-
   // форма заблокирована
   var disableForm = function () {
     window.form.disableFieldset(true);
-    window.backend.load(window.pin.addElements, errorHandler);
-    window.backend.load(window.card.addElements, errorHandler);
+    window.pin.loadElements();
+    window.card.loadElements();
     window.form.setCoords();
     window.form.selectType();
     window.form.syncRoomsGuests();
@@ -125,8 +110,7 @@
     }
   };
 
-  var initializePopup = function () {
-    var mapPin = map.querySelectorAll('.map__pin');
+  var initializePopup = function (mapPin) {
     var btnPopupClose = map.querySelectorAll('.popup__close');
 
     // показываем по клику/enter на пине

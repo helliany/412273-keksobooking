@@ -151,7 +151,7 @@
   // ошибка загрузки
   var errorHandler = function (errorMessage) {
     var node = document.createElement('div');
-    node.style = 'z-index: 2; width: 100%; height: 100%; padding-top: 300px; text-align: center; background-color: rgba(0, 0, 0, 0.8)';
+    node.style = 'z-index: 3; width: 100%; height: 100%; padding-top: 300px; text-align: center; background-color: rgba(0, 0, 0, 0.8)';
     node.style.position = 'fixed';
     node.style.left = 0;
     node.style.top = 0;
@@ -161,8 +161,12 @@
 
     node.textContent = errorMessage;
     document.body.insertAdjacentElement('afterbegin', node);
+    return node;
+  };
 
-    // скрывает сообщение об ошибке
+  // скрывает сообщение об ошибке
+  var showError = function (errorMessage) {
+    var node = errorHandler(errorMessage);
     node.addEventListener('click', function () {
       node.classList.add('hidden');
     });
@@ -180,7 +184,7 @@
       onAdFormReset();
       adForm.reset();
       successSending.classList.remove('hidden');
-    }, errorHandler);
+    }, showError);
     evt.preventDefault();
   });
 
@@ -201,6 +205,7 @@
     setCoords: setCoords,
     selectType: selectType,
     syncRoomsGuests: syncRoomsGuests,
-    validateFields: validateFields
+    validateFields: validateFields,
+    errorHandler: errorHandler
   };
 })();

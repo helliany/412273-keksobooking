@@ -1,7 +1,7 @@
 'use strict';
 
 (function () {
-  var ADS_LENGTH = 8;
+  var ADS_LENGTH = 5;
   var MAP_PIN_WIDTH = 50;
   var MAP_PIN_HEIGHT = 70;
 
@@ -18,18 +18,29 @@
     return mapPinElement;
   };
 
-  // отрисовка меток
-  var addElements = function (pin) {
-    var mapList = map.querySelector('.map__pins');
+  // отрисовка элементов
+  var getElements = function (data, action) {
     var fragment = document.createDocumentFragment();
-    window.arrPin = window.utils.shuffleArr(pin);
     for (var i = 0; i < ADS_LENGTH; i++) {
-      fragment.appendChild(renderMapPin(window.arrPin[i]));
+      fragment.appendChild(action(data[i]));
     }
-    mapList.appendChild(fragment);
+    return fragment;
+  };
+
+  // загрузка данных
+  var loadElements = function () {
+    var mapList = map.querySelector('.map__pins');
+    var onLoad = function (data) {
+      mapList.appendChild(getElements(data, renderMapPin));
+    };
+    var onError = function (msg) {
+      window.form.errorHandler(msg);
+    };
+    window.backend.load(onLoad, onError);
   };
 
   window.pin = {
-    addElements: addElements
+    getElements: getElements,
+    loadElements: loadElements
   };
 })();
