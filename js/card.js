@@ -9,28 +9,17 @@
     var mapCardElement = mapCardTemplate.cloneNode(true);
     mapCardElement.classList.add('hidden');
 
-    var getType = function (type) {
-      switch (type) {
-        case 'flat':
-          type = 'Квартира';
-          break;
-        case 'bungalo':
-          type = 'Бунгало';
-          break;
-        case 'house':
-          type = 'Дом';
-          break;
-        case 'palace':
-          type = 'Дворец';
-          break;
-      }
-      return type;
+    var valueToType = {
+      flat: 'Квартира',
+      bungalo: 'Бунгало',
+      house: 'Дом',
+      palace: 'Дворец'
     };
 
     mapCardElement.querySelector('.popup__title').textContent = mapCard.offer.title;
     mapCardElement.querySelector('.popup__text--address').textContent = mapCard.offer.address;
     mapCardElement.querySelector('.popup__text--price').textContent = mapCard.offer.price + '₽/ночь';
-    mapCardElement.querySelector('.popup__type').textContent = getType(mapCard.offer.type);
+    mapCardElement.querySelector('.popup__type').textContent = valueToType[mapCard.offer.type];
     mapCardElement.querySelector('.popup__text--capacity').textContent = mapCard.offer.rooms + ' комнаты для ' + mapCard.offer.guests + ' гостей';
     mapCardElement.querySelector('.popup__text--time').textContent = 'Заезд после ' + mapCard.offer.checkin + ', выезд до ' + mapCard.offer.checkout;
     mapCardElement.querySelector('.popup__features').textContent = '';

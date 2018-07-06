@@ -10,12 +10,12 @@
 
   var map = document.querySelector('.map');
   var mapPinMain = map.querySelector('.map__pin--main');
-  var adForm = document.querySelector('.ad-form');
-  var typeField = adForm.querySelector('#type');
-  var timeInField = adForm.querySelector('#timein');
-  var timeOutField = adForm.querySelector('#timeout');
-  var roomField = adForm.querySelector('#room_number');
-  var addressField = adForm.querySelector('#address');
+  var form = document.querySelector('.ad-form');
+  var typeField = form.querySelector('#type');
+  var timeInField = form.querySelector('#timein');
+  var timeOutField = form.querySelector('#timeout');
+  var roomField = form.querySelector('#room_number');
+  var addressField = form.querySelector('#address');
   var successSending = document.querySelector('.success');
 
   // словарь типов жилья и цены
@@ -27,16 +27,16 @@
   };
 
   // поля формы .ad-form заблокированы
-  var disableFieldset = function (value) {
-    var adFieldset = adForm.querySelectorAll('fieldset');
-    for (var i = 0; i < adFieldset.length; i++) {
-      adFieldset[i].disabled = value;
-    }
+  var disableFields = function (value) {
+    var fieldsets = form.querySelectorAll('fieldset');
+    fieldsets.forEach(function (field) {
+      field.disabled = value;
+    });
   };
 
   // синхронизация типа жилья и цены
   var selectType = function () {
-    var priceField = adForm.querySelector('#price');
+    var priceField = form.querySelector('#price');
     var userType = typeField.options[typeField.selectedIndex].value;
     var userPrice = typeToPrice[userType];
     priceField.min = userPrice;
@@ -58,9 +58,9 @@
 
   // синхронизация комнат и гостей
   var syncRoomsGuests = function () {
-    var capacityField = adForm.querySelectorAll('#capacity option');
+    var capacityFields = form.querySelectorAll('#capacity option');
 
-    capacityField.forEach(function (item) {
+    capacityFields.forEach(function (item) {
       var userRoom = parseInt(roomField.value, 10);
       var value = parseInt(item.value, 10);
       if (userRoom === VALUE_ROOM_NO_GUESTS) {
@@ -83,36 +83,36 @@
   };
 
   // скрыть пины после сброса
-  var hidePin = function () {
-    var mapPin = map.querySelectorAll('.map__pin');
-    for (var j = 1; j < mapPin.length; j++) {
-      mapPin[j].classList.add('hidden');
+  var hidePins = function () {
+    var mapPins = map.querySelectorAll('.map__pin');
+    for (var j = 1; j < mapPins.length; j++) {
+      mapPins[j].classList.add('hidden');
     }
   };
 
   // прячем карточки
-  var hideCard = function () {
-    var mapCard = map.querySelectorAll('.map__card');
-    var mapPin = map.querySelectorAll('.map__pin');
-    mapCard.forEach(function (cardItem) {
+  var hideCards = function () {
+    var mapCards = map.querySelectorAll('.map__card');
+    var mapPins = map.querySelectorAll('.map__pin');
+    mapCards.forEach(function (cardItem) {
       cardItem.classList.add('hidden');
     });
-    mapPin.forEach(function (pinItem) {
+    mapPins.forEach(function (pinItem) {
       pinItem.classList.remove('map__pin--active');
     });
   };
 
   // сброс формы, координат главного пина
-  var onAdFormReset = function () {
+  var onFormReset = function () {
     mapPinMain.style.top = (map.offsetHeight * 0.5) + 'px';
     mapPinMain.style.left = START_PIN_MAIN_X + 'px';
 
     map.classList.add('map--faded');
-    adForm.classList.add('ad-form--disabled');
+    form.classList.add('ad-form--disabled');
 
-    hidePin();
-    hideCard();
-    disableFieldset(true);
+    hidePins();
+    hideCards();
+    disableFields(true);
     setTimeout(function () {
       selectType();
       syncRoomsGuests();
@@ -120,8 +120,8 @@
     });
   };
 
-  adForm.addEventListener('reset', function () {
-    onAdFormReset();
+  form.addEventListener('reset', function () {
+    onFormReset();
   });
 
   // валидация инпутов
@@ -142,7 +142,7 @@
       input.addEventListener('input', function () {
         validateInput(input);
       });
-      adForm.addEventListener('reset', function () {
+      form.addEventListener('reset', function () {
         validateInput(input);
       });
     });
@@ -179,10 +179,10 @@
   };
 
   // отмена действия формы по умолчанию
-  adForm.addEventListener('submit', function (evt) {
-    window.backend.save(new FormData(adForm), function () {
-      onAdFormReset();
-      adForm.reset();
+  form.addEventListener('submit', function (evt) {
+    window.backend.save(new FormData(form), function () {
+      onFormReset();
+      form.reset();
       successSending.classList.remove('hidden');
     }, showError);
     evt.preventDefault();
@@ -200,8 +200,8 @@
   });
 
   window.form = {
-    disableFieldset: disableFieldset,
-    hideCard: hideCard,
+    disableFields: disableFields,
+    hideCards: hideCards,
     setCoords: setCoords,
     selectType: selectType,
     syncRoomsGuests: syncRoomsGuests,
