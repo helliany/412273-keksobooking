@@ -622,6 +622,10 @@ fieldset {
   border-radius: 4px;
 }
 
+.ad-form__element .ad-form__element--border-red {
+  border: 1px solid red;
+}
+
 .ad-form__element input:hover,
 .ad-form__element select:hover,
 .ad-form__element textarea:hover {

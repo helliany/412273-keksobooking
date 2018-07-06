@@ -1,8 +1,6 @@
 'use strict';
 
 (function () {
-  var ADS_LENGTH = 8;
-
   var map = document.querySelector('.map');
 
   // создание карточек
@@ -11,28 +9,17 @@
     var mapCardElement = mapCardTemplate.cloneNode(true);
     mapCardElement.classList.add('hidden');
 
-    var getType = function (type) {
-      switch (type) {
-        case 'flat':
-          type = 'Квартира';
-          break;
-        case 'bungalo':
-          type = 'Бунгало';
-          break;
-        case 'house':
-          type = 'Дом';
-          break;
-        case 'palace':
-          type = 'Дворец';
-          break;
-      }
-      return type;
+    var valueToType = {
+      flat: 'Квартира',
+      bungalo: 'Бунгало',
+      house: 'Дом',
+      palace: 'Дворец'
     };
 
     mapCardElement.querySelector('.popup__title').textContent = mapCard.offer.title;
     mapCardElement.querySelector('.popup__text--address').textContent = mapCard.offer.address;
     mapCardElement.querySelector('.popup__text--price').textContent = mapCard.offer.price + '₽/ночь';
-    mapCardElement.querySelector('.popup__type').textContent = getType(mapCard.offer.type);
+    mapCardElement.querySelector('.popup__type').textContent = valueToType[mapCard.offer.type];
     mapCardElement.querySelector('.popup__text--capacity').textContent = mapCard.offer.rooms + ' комнаты для ' + mapCard.offer.guests + ' гостей';
     mapCardElement.querySelector('.popup__text--time').textContent = 'Заезд после ' + mapCard.offer.checkin + ', выезд до ' + mapCard.offer.checkout;
     mapCardElement.querySelector('.popup__features').textContent = '';
@@ -48,17 +35,19 @@
     return mapCardElement;
   };
 
-  // отрисовка карточек
-  var addElements = function () {
+  // загрузка данных
+  var loadElements = function () {
     var mapFilters = map.querySelector('.map__filters-container');
-    var fragment = document.createDocumentFragment();
-    for (var i = 0; i < ADS_LENGTH; i++) {
-      fragment.appendChild(renderMapCard(window.data[i]));
-    }
-    map.insertBefore(fragment, mapFilters);
+    var onLoad = function (data) {
+      map.insertBefore(window.pin.getElements(data, renderMapCard), mapFilters);
+    };
+    var onError = function (msg) {
+      window.form.errorHandler(msg);
+    };
+    window.backend.load(onLoad, onError);
   };
 
   window.card = {
-    addElements: addElements
+    loadElements: loadElements
   };
 })();
