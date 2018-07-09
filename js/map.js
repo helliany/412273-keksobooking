@@ -16,7 +16,7 @@
     map.classList.remove('map--faded');
     form.classList.remove('ad-form--disabled');
     window.form.disableFields(false);
-    window.backend.load(window.onSuccess, window.form.onError);
+    window.backend.load(window.filter.onLoadSuccess, window.form.onLoadError);
     window.form.validateFields();
     mapPinMain.removeEventListener('mouseup', enableForm);
   };

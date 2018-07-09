@@ -132,7 +132,7 @@
   };
 
   // ошибка загрузки
-  var onError = function (errorMessage) {
+  var onLoadError = function (errorMessage) {
     var node = document.createElement('div');
     node.style = 'z-index: 3; width: 100%; height: 100%; padding-top: 300px; text-align: center; background-color: rgba(0, 0, 0, 0.8)';
     node.style.position = 'fixed';
@@ -149,7 +149,7 @@
 
   // скрывает сообщение об ошибке
   var showError = function (errorMessage) {
-    var node = onError(errorMessage);
+    var node = onLoadError(errorMessage);
     node.addEventListener('click', function () {
       node.classList.add('hidden');
     });
@@ -188,6 +188,6 @@
     selectType: selectType,
     syncRoomsGuests: syncRoomsGuests,
     validateFields: validateFields,
-    onError: onError
+    onLoadError: onLoadError
   };
 })();

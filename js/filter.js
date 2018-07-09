@@ -15,7 +15,7 @@
     middle: 50000
   };
 
-  window.onSuccess = function (data) {
+  var onLoadSuccess = function (data) {
     newData = data;
     window.pin.renderPins(newData);
   };
@@ -81,6 +81,7 @@
   });
 
   window.filter = {
+    onLoadSuccess: onLoadSuccess,
     updateData: updateData
   };
 
