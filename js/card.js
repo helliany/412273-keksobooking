@@ -3,11 +3,10 @@
 (function () {
   var map = document.querySelector('.map');
 
-  // создание карточек
-  var renderMapCard = function (mapCard) {
+  // создание карточки
+  var getMapCard = function (mapCard) {
     var mapCardTemplate = document.querySelector('template').content.querySelector('.map__card');
-    var mapCardElement = mapCardTemplate.cloneNode(true);
-    mapCardElement.classList.add('hidden');
+    var mapCardNode = mapCardTemplate.cloneNode(true);
 
     var valueToType = {
       flat: 'Квартира',
@@ -16,38 +15,46 @@
       palace: 'Дворец'
     };
 
-    mapCardElement.querySelector('.popup__title').textContent = mapCard.offer.title;
-    mapCardElement.querySelector('.popup__text--address').textContent = mapCard.offer.address;
-    mapCardElement.querySelector('.popup__text--price').textContent = mapCard.offer.price + '₽/ночь';
-    mapCardElement.querySelector('.popup__type').textContent = valueToType[mapCard.offer.type];
-    mapCardElement.querySelector('.popup__text--capacity').textContent = mapCard.offer.rooms + ' комнаты для ' + mapCard.offer.guests + ' гостей';
-    mapCardElement.querySelector('.popup__text--time').textContent = 'Заезд после ' + mapCard.offer.checkin + ', выезд до ' + mapCard.offer.checkout;
-    mapCardElement.querySelector('.popup__features').textContent = '';
+    mapCardNode.querySelector('.popup__title').textContent = mapCard.offer.title;
+    mapCardNode.querySelector('.popup__text--address').textContent = mapCard.offer.address;
+    mapCardNode.querySelector('.popup__text--price').textContent = mapCard.offer.price + '₽/ночь';
+    mapCardNode.querySelector('.popup__type').textContent = valueToType[mapCard.offer.type];
+    mapCardNode.querySelector('.popup__text--capacity').textContent = mapCard.offer.rooms + ' комнаты для ' + mapCard.offer.guests + ' гостей';
+    mapCardNode.querySelector('.popup__text--time').textContent = 'Заезд после ' + mapCard.offer.checkin + ', выезд до ' + mapCard.offer.checkout;
+    mapCardNode.querySelector('.popup__features').textContent = '';
     for (var i = 0; i < mapCard.offer.features.length; i++) {
-      mapCardElement.querySelector('.popup__features').insertAdjacentHTML('beforeend', '<li class="popup__feature popup__feature--' + mapCard.offer.features[i] + '"></li>');
+      mapCardNode.querySelector('.popup__features').insertAdjacentHTML('beforeend', '<li class="popup__feature popup__feature--' + mapCard.offer.features[i] + '"></li>');
     }
-    mapCardElement.querySelector('.popup__description').textContent = mapCard.offer.description;
-    mapCardElement.querySelector('.popup__photos').textContent = '';
+    mapCardNode.querySelector('.popup__description').textContent = mapCard.offer.description;
+    mapCardNode.querySelector('.popup__photos').textContent = '';
     for (var j = 0; j < mapCard.offer.photos.length; j++) {
-      mapCardElement.querySelector('.popup__photos').insertAdjacentHTML('beforeend', '<img src="' + mapCard.offer.photos[j] + '" class="popup__photo" width="45" height="40" alt="Фотография жилья">');
+      mapCardNode.querySelector('.popup__photos').insertAdjacentHTML('beforeend', '<img src="' + mapCard.offer.photos[j] + '" class="popup__photo" width="45" height="40" alt="Фотография жилья">');
     }
-    mapCardElement.querySelector('.popup__avatar').src = mapCard.author.avatar;
-    return mapCardElement;
+    mapCardNode.querySelector('.popup__avatar').src = mapCard.author.avatar;
+    return mapCardNode;
   };
 
-  // загрузка данных
-  var loadElements = function () {
-    var mapFilters = map.querySelector('.map__filters-container');
-    var onLoad = function (data) {
-      map.insertBefore(window.pin.getElements(data, renderMapCard), mapFilters);
-    };
-    var onError = function (msg) {
-      window.form.errorHandler(msg);
-    };
-    window.backend.load(onLoad, onError);
+  // отрисовка текущей карточки
+  var renderCard = function (index) {
+    var data = window.filter.updateData();
+    var mapFilter = map.querySelector('.map__filters-container');
+    map.insertBefore(getMapCard(data[index]), mapFilter);
+  };
+
+  // удаление карточек
+  var removeCards = function () {
+    var mapCards = map.querySelectorAll('.map__card');
+    var mapPins = map.querySelectorAll('.map__pin');
+    mapCards.forEach(function (cardItem) {
+      cardItem.remove();
+    });
+    mapPins.forEach(function (pinItem) {
+      pinItem.classList.remove('map__pin--active');
+    });
   };
 
   window.card = {
-    loadElements: loadElements
+    renderCard: renderCard,
+    removeCards: removeCards
   };
 })();

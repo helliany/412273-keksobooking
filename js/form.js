@@ -6,7 +6,6 @@
   var MAP_PIN_MAIN_WIDTH = 65;
   var MAP_PIN_MAIN_HEIGHT = 85;
   var START_PIN_MAIN_X = 570;
-  var ESC_KEYCODE = 27;
 
   var map = document.querySelector('.map');
   var mapPinMain = map.querySelector('.map__pin--main');
@@ -16,7 +15,8 @@
   var timeOutField = form.querySelector('#timeout');
   var roomField = form.querySelector('#room_number');
   var addressField = form.querySelector('#address');
-  var successSending = document.querySelector('.success');
+  var successMessage = document.querySelector('.success');
+  var filter = map.querySelector('.map__filters');
 
   // словарь типов жилья и цены
   var typeToPrice = {
@@ -29,8 +29,8 @@
   // поля формы .ad-form заблокированы
   var disableFields = function (value) {
     var fieldsets = form.querySelectorAll('fieldset');
-    fieldsets.forEach(function (field) {
-      field.disabled = value;
+    fieldsets.forEach(function (fieldset) {
+      fieldset.disabled = value;
     });
   };
 
@@ -82,26 +82,6 @@
     addressField.value = (mapPinMain.offsetLeft + Math.floor(MAP_PIN_MAIN_WIDTH * 0.5)) + ', ' + (mapPinMain.offsetTop + MAP_PIN_MAIN_HEIGHT);
   };
 
-  // скрыть пины после сброса
-  var hidePins = function () {
-    var mapPins = map.querySelectorAll('.map__pin');
-    for (var j = 1; j < mapPins.length; j++) {
-      mapPins[j].classList.add('hidden');
-    }
-  };
-
-  // прячем карточки
-  var hideCards = function () {
-    var mapCards = map.querySelectorAll('.map__card');
-    var mapPins = map.querySelectorAll('.map__pin');
-    mapCards.forEach(function (cardItem) {
-      cardItem.classList.add('hidden');
-    });
-    mapPins.forEach(function (pinItem) {
-      pinItem.classList.remove('map__pin--active');
-    });
-  };
-
   // сброс формы, координат главного пина
   var onFormReset = function () {
     mapPinMain.style.top = (map.offsetHeight * 0.5) + 'px';
@@ -110,14 +90,17 @@
     map.classList.add('map--faded');
     form.classList.add('ad-form--disabled');
 
-    hidePins();
-    hideCards();
+    window.pin.removePins();
+    window.card.removeCards();
+    window.images.removeImages();
     disableFields(true);
     setTimeout(function () {
       selectType();
       syncRoomsGuests();
       setCoords();
     });
+    filter.reset();
+    window.map.loadPage();
   };
 
   form.addEventListener('reset', function () {
@@ -135,21 +118,21 @@
 
   var validateFields = function () {
     var fields = document.querySelectorAll('input');
-    fields.forEach(function (input) {
-      input.addEventListener('invalid', function () {
-        validateInput(input);
+    fields.forEach(function (field) {
+      field.addEventListener('invalid', function () {
+        validateInput(field);
       });
-      input.addEventListener('input', function () {
-        validateInput(input);
+      field.addEventListener('input', function () {
+        validateInput(field);
       });
       form.addEventListener('reset', function () {
-        validateInput(input);
+        field.classList.remove('ad-form__element--border-red');
       });
     });
   };
 
   // ошибка загрузки
-  var errorHandler = function (errorMessage) {
+  var onError = function (errorMessage) {
     var node = document.createElement('div');
     node.style = 'z-index: 3; width: 100%; height: 100%; padding-top: 300px; text-align: center; background-color: rgba(0, 0, 0, 0.8)';
     node.style.position = 'fixed';
@@ -166,15 +149,15 @@
 
   // скрывает сообщение об ошибке
   var showError = function (errorMessage) {
-    var node = errorHandler(errorMessage);
+    var node = onError(errorMessage);
     node.addEventListener('click', function () {
       node.classList.add('hidden');
     });
 
     document.addEventListener('keydown', function (evt) {
-      if (evt.keyCode === ESC_KEYCODE) {
+      window.utils.isEscEvent(evt, function () {
         node.classList.add('hidden');
-      }
+      });
     });
   };
 
@@ -183,29 +166,28 @@
     window.backend.save(new FormData(form), function () {
       onFormReset();
       form.reset();
-      successSending.classList.remove('hidden');
+      successMessage.classList.remove('hidden');
     }, showError);
     evt.preventDefault();
   });
 
   // скрывает сообщение об успешной отправке формы
-  successSending.addEventListener('click', function () {
-    successSending.classList.add('hidden');
+  successMessage.addEventListener('click', function () {
+    successMessage.classList.add('hidden');
   });
 
   document.addEventListener('keydown', function (evt) {
-    if (evt.keyCode === ESC_KEYCODE) {
-      successSending.classList.add('hidden');
-    }
+    window.utils.isEscEvent(evt, function () {
+      successMessage.classList.add('hidden');
+    });
   });
 
   window.form = {
     disableFields: disableFields,
-    hideCards: hideCards,
     setCoords: setCoords,
     selectType: selectType,
     syncRoomsGuests: syncRoomsGuests,
     validateFields: validateFields,
-    errorHandler: errorHandler
+    onError: onError
   };
 })();

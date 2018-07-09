@@ -5,8 +5,6 @@
   var LOCATION_Y_MAX = 630;
   var MAP_PIN_MAIN_WIDTH = 65;
   var MAP_PIN_MAIN_HEIGHT = 85;
-  var ESC_KEYCODE = 27;
-  var ENTER_KEYCODE = 13;
 
   var map = document.querySelector('.map');
   var mapPinMain = map.querySelector('.map__pin--main');
@@ -15,18 +13,12 @@
 
   // переключение карты из неактивного состояния в активное
   var enableForm = function () {
-    var mapPins = map.querySelectorAll('.map__pin');
-
     map.classList.remove('map--faded');
     form.classList.remove('ad-form--disabled');
     window.form.disableFields(false);
-
-    mapPins.forEach(function (pin) {
-      pin.classList.remove('hidden');
-    });
-
-    initializePopup(mapPins);
+    window.backend.load(window.onSuccess, window.form.onError);
     window.form.validateFields();
+    mapPinMain.removeEventListener('mouseup', enableForm);
   };
 
   // перетаскивание главного пина
@@ -76,75 +68,87 @@
 
       document.removeEventListener('mousemove', onMouseMove);
       document.removeEventListener('mouseup', onMouseUp);
-
-      enableForm();
     };
 
     document.addEventListener('mousemove', onMouseMove);
     document.addEventListener('mouseup', onMouseUp);
+    mapPinMain.removeEventListener('mousedown', onMouseDown);
   };
 
   mapPinMain.addEventListener('mousedown', function (evt) {
     onMouseDown(evt);
   });
 
+  // запускает один раз загрузку пинов и карточек
+  var loadPage = function () {
+    mapPinMain.addEventListener('mouseup', enableForm);
+  };
+
   // форма заблокирована
   var disableForm = function () {
     window.form.disableFields(true);
-    window.pin.loadElements();
-    window.card.loadElements();
     window.form.setCoords();
     window.form.selectType();
     window.form.syncRoomsGuests();
+    loadPage();
   };
-
-  disableForm();
 
   // показываем карточку
-  var openCard = function (evt, index) {
-    var mapCards = map.querySelectorAll('.map__card');
-    window.form.hideCards();
-
-    if (!evt.currentTarget.matches('.map__pin--main')) {
-      mapCards[index - 1].classList.remove('hidden');
+  map.addEventListener('click', function (evt) {
+    var evtTarget = evt.target;
+    var evtTargetParent = evt.target.parentNode;
+    if (evtTarget.classList.contains('map__pin') || evtTargetParent.classList.contains('map__pin')) {
+      initializePopup(evtTarget);
+      initializePopup(evtTargetParent);
     }
+  });
+
+  var initializePopup = function (evtTarget) {
+    var mapPins = map.querySelectorAll('.map__pin:not(.map__pin--main)');
+    mapPins.forEach(function (item, index) {
+      if (item === evtTarget) {
+        window.card.renderCard(index);
+        item.classList.add('map__pin--active');
+      }
+    });
+    closePopup();
   };
 
-  var initializePopup = function (mapPins) {
+  // прячем карточку
+  var closePopup = function () {
     var btnsClose = map.querySelectorAll('.popup__close');
+    var mapPins = map.querySelectorAll('.map__pin:not(.map__pin--main)');
 
-    // показываем по клику/enter на пине
-    mapPins.forEach(function (item, index) {
-      item.addEventListener('click', function (evt) {
-        openCard(evt, index);
-        evt.currentTarget.classList.add('map__pin--active');
+    // прячем по клику/enter на пине
+    mapPins.forEach(function (item) {
+      item.addEventListener('click', function () {
+        window.card.removeCards();
       });
 
       item.addEventListener('keydown', function (evt) {
-        if (evt.keyCode === ENTER_KEYCODE) {
-          openCard(evt, index);
-          evt.currentTarget.classList.add('map__pin--active');
-        }
+        window.utils.isEnterEvent(evt, window.card.removeCards);
       });
     });
 
     // прячем по клику/enter на кнопке, esc
     btnsClose.forEach(function (btnClose) {
       btnClose.addEventListener('click', function () {
-        window.form.hideCards();
+        window.card.removeCards();
       });
 
       btnClose.addEventListener('keydown', function (evt) {
-        if (evt.keyCode === ENTER_KEYCODE) {
-          window.form.hideCards();
-        }
+        window.utils.isEnterEvent(evt, window.card.removeCards);
       });
 
       document.addEventListener('keydown', function (evt) {
-        if (evt.keyCode === ESC_KEYCODE) {
-          window.form.hideCards();
-        }
+        window.utils.isEscEvent(evt, window.card.removeCards);
       });
     });
+  };
+
+  disableForm();
+
+  window.map = {
+    loadPage: loadPage
   };
 })();
