@@ -10,9 +10,9 @@
   var features = filter.querySelector('.map__features');
   var newData = [];
 
-  var priceRange = {
-    low: 10000,
-    middle: 50000
+  var valueToPrice = {
+    low: '10000',
+    high: '50000'
   };
 
   var onLoadSuccess = function (data) {
@@ -29,11 +29,11 @@
   var filterPrice = function (item) {
     switch (price.value) {
       case 'low':
-        return item.offer.price < priceRange.low;
+        return item.offer.price < valueToPrice.low;
       case 'middle':
-        return item.offer.price >= priceRange.low && item.offer.price < priceRange.middle;
+        return item.offer.price >= valueToPrice.low && item.offer.price < valueToPrice.high;
       case 'high':
-        return item.offer.price >= priceRange.middle;
+        return item.offer.price >= valueToPrice.high;
       default:
         return true;
     }
@@ -69,7 +69,7 @@
   };
 
   // фильтруем данные
-  var updatePins = function () {
+  var onFilterChange = function () {
     window.pin.removePins();
     window.card.removeCards();
     var updatedData = updateData();
@@ -77,7 +77,7 @@
   };
 
   filter.addEventListener('change', function () {
-    window.utils.debounce(updatePins);
+    window.utils.debounce(onFilterChange);
   });
 
   window.filter = {

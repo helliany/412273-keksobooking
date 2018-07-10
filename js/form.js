@@ -10,7 +10,7 @@
   var map = document.querySelector('.map');
   var mapPinMain = map.querySelector('.map__pin--main');
   var form = document.querySelector('.ad-form');
-  var fields = document.querySelectorAll('input');
+  var fields = document.querySelectorAll('input[required]');
   var typeField = form.querySelector('#type');
   var timeInField = form.querySelector('#timein');
   var timeOutField = form.querySelector('#timeout');
@@ -45,11 +45,11 @@
   };
 
   // синхронизация времени заезда и выезда
-  var selectTimeIn = function () {
+  var onTimeInChange = function () {
     timeOutField.value = timeInField.value;
   };
 
-  var selectTimeOut = function () {
+  var onTimeOutChange = function () {
     timeInField.value = timeOutField.value;
   };
 
@@ -75,7 +75,7 @@
   };
 
   // валидация инпутов
-  var validateInput = function (evt) {
+  var onInputInvalid = function (evt) {
     if (!evt.target.validity.valid) {
       evt.target.classList.add('ad-form__element--invalid');
     } else {
@@ -85,16 +85,16 @@
 
   var validateFields = function () {
     fields.forEach(function (field) {
-      field.addEventListener('invalid', validateInput);
-      field.addEventListener('input', validateInput);
+      field.addEventListener('invalid', onInputInvalid);
+      field.addEventListener('input', onInputInvalid);
     });
   };
 
   // убрать рамки и обработчики событий с инпутов
   var removeFieldsState = function () {
     fields.forEach(function (field) {
-      field.removeEventListener('invalid', validateInput);
-      field.removeEventListener('input', validateInput);
+      field.removeEventListener('invalid', onInputInvalid);
+      field.removeEventListener('input', onInputInvalid);
       field.classList.remove('ad-form__element--invalid');
     });
   };
@@ -104,8 +104,8 @@
     var node = document.createElement('div');
     node.style = 'z-index: 3; width: 100%; height: 100%; padding-top: 300px; text-align: center; background-color: rgba(0, 0, 0, 0.8)';
     node.style.position = 'fixed';
-    node.style.left = 0;
-    node.style.top = 0;
+    node.style.left = '0';
+    node.style.top = '0';
     node.style.fontSize = '50px';
     node.style.color = '#ffffff';
     node.style.fontWeight = '700';
@@ -118,36 +118,36 @@
   // скрываемое сообщение об ошибке загрузки
   var showErrorMsg = function (errorMessage) {
     var node = onLoadError(errorMessage);
-    var removeErrorMsg = function () {
+    var onErrorClick = function () {
       node.remove();
-      document.removeEventListener('click', removeErrorMsg);
+      document.removeEventListener('click', onErrorClick);
       document.removeEventListener('keydown', onErrorEscPress);
     };
 
     var onErrorEscPress = function (evt) {
-      window.utils.isEscEvent(evt, removeErrorMsg);
+      window.utils.isEscEvent(evt, onErrorClick);
     };
 
-    document.addEventListener('click', removeErrorMsg);
+    document.addEventListener('click', onErrorClick);
     document.addEventListener('keydown', onErrorEscPress);
   };
 
   // показывает сообщение об успешной отправке формы
   var showSuccessMsg = function () {
     successMessage.classList.remove('hidden');
-    successMessage.addEventListener('click', removeSuccessMsg);
-    document.addEventListener('keydown', onMessageEscPress);
+    successMessage.addEventListener('click', onSuccessClick);
+    document.addEventListener('keydown', onSuccessEscPress);
   };
 
   // скрывает сообщение об успешной отправке формы
-  var removeSuccessMsg = function () {
+  var onSuccessClick = function () {
     successMessage.classList.add('hidden');
-    successMessage.removeEventListener('click', removeSuccessMsg);
-    document.removeEventListener('keydown', onMessageEscPress);
+    successMessage.removeEventListener('click', onSuccessClick);
+    document.removeEventListener('keydown', onSuccessEscPress);
   };
 
-  var onMessageEscPress = function (evt) {
-    window.utils.isEscEvent(evt, removeSuccessMsg);
+  var onSuccessEscPress = function (evt) {
+    window.utils.isEscEvent(evt, onSuccessClick);
   };
 
   // сброс формы, координат главного пина
@@ -186,21 +186,23 @@
   // добавить обработчики событий на форму
   var addListeners = function () {
     typeField.addEventListener('change', selectType);
-    timeInField.addEventListener('change', selectTimeIn);
-    timeOutField.addEventListener('change', selectTimeOut);
+    timeInField.addEventListener('change', onTimeInChange);
+    timeOutField.addEventListener('change', onTimeOutChange);
     roomField.addEventListener('change', syncRoomsGuests);
     form.addEventListener('reset', onFormReset);
     form.addEventListener('submit', onFormSubmit);
+    window.images.addListeners();
   };
 
   // удалить обработчики событий с формы
   var removeListeners = function () {
     typeField.removeEventListener('change', selectType);
-    timeInField.removeEventListener('change', selectTimeIn);
-    timeOutField.removeEventListener('change', selectTimeOut);
+    timeInField.removeEventListener('change', onTimeInChange);
+    timeOutField.removeEventListener('change', onTimeOutChange);
     roomField.removeEventListener('change', syncRoomsGuests);
     form.removeEventListener('reset', onFormReset);
     form.removeEventListener('submit', onFormSubmit);
+    window.images.removeListeners();
   };
 
   window.form = {

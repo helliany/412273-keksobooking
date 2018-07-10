@@ -44,7 +44,7 @@
   // удаление карточек
   var removeCards = function () {
     var mapCards = map.querySelectorAll('.map__card');
-    var mapPins = map.querySelectorAll('.map__pin');
+    var mapPins = map.querySelectorAll('.map__pin:not(.map__pin--main)');
     mapCards.forEach(function (cardItem) {
       cardItem.remove();
     });

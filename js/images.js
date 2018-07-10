@@ -47,16 +47,6 @@
     });
   };
 
-  avatarChooser.addEventListener('change', function (evt) {
-    var file = evt.target.files[0];
-    loadAvatar(file);
-  });
-
-  avatarDropZone.addEventListener('dragover', onZoneDragOver);
-  avatarDropZone.addEventListener('drop', function (evt) {
-    onZoneDrop(evt, loadAvatar);
-  });
-
   // загрузка фото жилья
   var loadPhoto = function (file) {
     matchFileType(file, function (reader) {
@@ -69,15 +59,45 @@
     });
   };
 
-  photoChooser.addEventListener('change', function (evt) {
+  var onAvatarInputChange = function (evt) {
+    var file = evt.target.files[0];
+    loadAvatar(file);
+  };
+
+  var onPhotoInputChange = function (evt) {
     var file = evt.target.files[0];
     loadPhoto(file);
-  });
+  };
 
-  photoDropZone.addEventListener('dragover', onZoneDragOver);
-  photoDropZone.addEventListener('drop', function (evt) {
+  var onAvatarZoneDrop = function (evt) {
+    onZoneDrop(evt, loadAvatar);
+  };
+
+  var onPhotoZoneDrop = function (evt) {
     onZoneDrop(evt, loadPhoto);
-  });
+  };
+
+  // добавить обработчики событий на поля загрузки
+  var addListeners = function () {
+    avatarChooser.addEventListener('change', onAvatarInputChange);
+    avatarDropZone.addEventListener('dragover', onZoneDragOver);
+    avatarDropZone.addEventListener('drop', onAvatarZoneDrop);
+
+    photoChooser.addEventListener('change', onPhotoInputChange);
+    photoDropZone.addEventListener('dragover', onZoneDragOver);
+    photoDropZone.addEventListener('drop', onPhotoZoneDrop);
+  };
+
+  // удалить обработчики событий с полей загрузки
+  var removeListeners = function () {
+    avatarChooser.removeEventListener('change', onAvatarInputChange);
+    avatarDropZone.removeEventListener('dragover', onZoneDragOver);
+    avatarDropZone.removeEventListener('drop', onAvatarZoneDrop);
+
+    photoChooser.removeEventListener('change', onPhotoInputChange);
+    photoDropZone.removeEventListener('dragover', onZoneDragOver);
+    photoDropZone.removeEventListener('drop', onPhotoZoneDrop);
+  };
 
   // удаление файлов
   var removeImages = function () {
@@ -90,6 +110,8 @@
   };
 
   window.images = {
+    addListeners: addListeners,
+    removeListeners: removeListeners,
     removeImages: removeImages
   };
 })();
