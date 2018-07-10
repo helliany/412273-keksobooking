@@ -15,6 +15,7 @@
   var enableForm = function () {
     map.classList.remove('map--faded');
     form.classList.remove('ad-form--disabled');
+    window.form.addListeners();
     window.form.disableFields(false);
     window.backend.load(window.filter.onLoadSuccess, window.form.onLoadError);
     window.form.validateFields();
@@ -72,12 +73,7 @@
 
     document.addEventListener('mousemove', onMouseMove);
     document.addEventListener('mouseup', onMouseUp);
-    mapPinMain.removeEventListener('mousedown', onMouseDown);
   };
-
-  mapPinMain.addEventListener('mousedown', function (evt) {
-    onMouseDown(evt);
-  });
 
   // запускает один раз загрузку пинов и карточек
   var loadPage = function () {
@@ -114,6 +110,10 @@
     closePopup();
   };
 
+  var onPopupEscPress = function (evt) {
+    window.utils.isEscEvent(evt, window.card.removeCards);
+  };
+
   // прячем карточку
   var closePopup = function () {
     var btnsClose = map.querySelectorAll('.popup__close');
@@ -121,9 +121,7 @@
 
     // прячем по клику/enter на пине
     mapPins.forEach(function (item) {
-      item.addEventListener('click', function () {
-        window.card.removeCards();
-      });
+      item.addEventListener('click', window.card.removeCards);
 
       item.addEventListener('keydown', function (evt) {
         window.utils.isEnterEvent(evt, window.card.removeCards);
@@ -132,21 +130,18 @@
 
     // прячем по клику/enter на кнопке, esc
     btnsClose.forEach(function (btnClose) {
-      btnClose.addEventListener('click', function () {
-        window.card.removeCards();
-      });
+      btnClose.addEventListener('click', window.card.removeCards);
 
       btnClose.addEventListener('keydown', function (evt) {
         window.utils.isEnterEvent(evt, window.card.removeCards);
       });
-
-      document.addEventListener('keydown', function (evt) {
-        window.utils.isEscEvent(evt, window.card.removeCards);
-      });
     });
+
+    document.addEventListener('keydown', onPopupEscPress);
   };
 
   disableForm();
+  mapPinMain.addEventListener('mousedown', onMouseDown);
 
   window.map = {
     loadPage: loadPage

@@ -2,6 +2,7 @@
 
 (function () {
   var FILE_TYPES = ['gif', 'jpg', 'jpeg', 'png'];
+  var AVATAR_SRC = 'img/muffin-grey.svg';
 
   var form = document.querySelector('.ad-form');
   var avatarDropZone = form.querySelector('.ad-form-header__drop-zone');
@@ -27,13 +28,11 @@
 
   // выбор файла перетаскиванием
   var onZoneDragOver = function (evt) {
-    evt.stopPropagation();
     evt.preventDefault();
     evt.dataTransfer.dropEffect = 'copy';
   };
 
   var onZoneDrop = function (evt, action) {
-    evt.stopPropagation();
     evt.preventDefault();
     var file = evt.dataTransfer.files[0];
     action(file);
@@ -83,7 +82,7 @@
   // удаление файлов
   var removeImages = function () {
     photoPreview.classList.add('ad-form__photo--main');
-    avatarPreview.src = 'img/muffin-grey.svg';
+    avatarPreview.src = AVATAR_SRC;
     var photos = photoContainer.querySelectorAll('.ad-form__photo:not(.ad-form__photo--main)');
     photos.forEach(function (item) {
       item.remove();

@@ -10,6 +10,7 @@
   var map = document.querySelector('.map');
   var mapPinMain = map.querySelector('.map__pin--main');
   var form = document.querySelector('.ad-form');
+  var fields = document.querySelectorAll('input');
   var typeField = form.querySelector('#type');
   var timeInField = form.querySelector('#timein');
   var timeOutField = form.querySelector('#timeout');
@@ -26,7 +27,7 @@
     palace: '10000'
   };
 
-  // поля формы .ad-form заблокированы
+  // поля формы заблокированы
   var disableFields = function (value) {
     var fieldsets = form.querySelectorAll('fieldset');
     fieldsets.forEach(function (fieldset) {
@@ -43,23 +44,18 @@
     priceField.placeholder = userPrice;
   };
 
-  typeField.addEventListener('change', function () {
-    selectType();
-  });
-
   // синхронизация времени заезда и выезда
-  timeInField.addEventListener('change', function () {
+  var selectTimeIn = function () {
     timeOutField.value = timeInField.value;
-  });
+  };
 
-  timeOutField.addEventListener('change', function () {
+  var selectTimeOut = function () {
     timeInField.value = timeOutField.value;
-  });
+  };
 
   // синхронизация комнат и гостей
   var syncRoomsGuests = function () {
     var capacityFields = form.querySelectorAll('#capacity option');
-
     capacityFields.forEach(function (item) {
       var userRoom = parseInt(roomField.value, 10);
       var value = parseInt(item.value, 10);
@@ -73,65 +69,37 @@
     });
   };
 
-  roomField.addEventListener('change', function () {
-    syncRoomsGuests();
-  });
-
   // координаты главного пина
   var setCoords = function () {
     addressField.value = (mapPinMain.offsetLeft + Math.floor(MAP_PIN_MAIN_WIDTH * 0.5)) + ', ' + (mapPinMain.offsetTop + MAP_PIN_MAIN_HEIGHT);
   };
 
-  // сброс формы, координат главного пина
-  var onFormReset = function () {
-    mapPinMain.style.top = (map.offsetHeight * 0.5) + 'px';
-    mapPinMain.style.left = START_PIN_MAIN_X + 'px';
-
-    map.classList.add('map--faded');
-    form.classList.add('ad-form--disabled');
-
-    window.pin.removePins();
-    window.card.removeCards();
-    window.images.removeImages();
-    disableFields(true);
-    setTimeout(function () {
-      selectType();
-      syncRoomsGuests();
-      setCoords();
-    });
-    filter.reset();
-    window.map.loadPage();
-  };
-
-  form.addEventListener('reset', function () {
-    onFormReset();
-  });
-
   // валидация инпутов
-  var validateInput = function (input) {
-    if (!input.validity.valid) {
-      input.classList.add('ad-form__element--border-red');
+  var validateInput = function (evt) {
+    if (!evt.target.validity.valid) {
+      evt.target.classList.add('ad-form__element--invalid');
     } else {
-      input.classList.remove('ad-form__element--border-red');
+      evt.target.classList.remove('ad-form__element--invalid');
     }
   };
 
   var validateFields = function () {
-    var fields = document.querySelectorAll('input');
     fields.forEach(function (field) {
-      field.addEventListener('invalid', function () {
-        validateInput(field);
-      });
-      field.addEventListener('input', function () {
-        validateInput(field);
-      });
-      form.addEventListener('reset', function () {
-        field.classList.remove('ad-form__element--border-red');
-      });
+      field.addEventListener('invalid', validateInput);
+      field.addEventListener('input', validateInput);
     });
   };
 
-  // ошибка загрузки
+  // убрать рамки и обработчики событий с инпутов
+  var removeFieldsState = function () {
+    fields.forEach(function (field) {
+      field.removeEventListener('invalid', validateInput);
+      field.removeEventListener('input', validateInput);
+      field.classList.remove('ad-form__element--invalid');
+    });
+  };
+
+  // сообщение об ошибке загрузки
   var onLoadError = function (errorMessage) {
     var node = document.createElement('div');
     node.style = 'z-index: 3; width: 100%; height: 100%; padding-top: 300px; text-align: center; background-color: rgba(0, 0, 0, 0.8)';
@@ -147,42 +115,96 @@
     return node;
   };
 
-  // скрывает сообщение об ошибке
-  var showError = function (errorMessage) {
+  // скрываемое сообщение об ошибке загрузки
+  var showErrorMsg = function (errorMessage) {
     var node = onLoadError(errorMessage);
-    node.addEventListener('click', function () {
-      node.classList.add('hidden');
-    });
+    var removeErrorMsg = function () {
+      node.remove();
+      document.removeEventListener('click', removeErrorMsg);
+      document.removeEventListener('keydown', onErrorEscPress);
+    };
 
-    document.addEventListener('keydown', function (evt) {
-      window.utils.isEscEvent(evt, function () {
-        node.classList.add('hidden');
-      });
-    });
+    var onErrorEscPress = function (evt) {
+      window.utils.isEscEvent(evt, removeErrorMsg);
+    };
+
+    document.addEventListener('click', removeErrorMsg);
+    document.addEventListener('keydown', onErrorEscPress);
   };
 
-  // отмена действия формы по умолчанию
-  form.addEventListener('submit', function (evt) {
+  // показывает сообщение об успешной отправке формы
+  var showSuccessMsg = function () {
+    successMessage.classList.remove('hidden');
+    successMessage.addEventListener('click', removeSuccessMsg);
+    document.addEventListener('keydown', onMessageEscPress);
+  };
+
+  // скрывает сообщение об успешной отправке формы
+  var removeSuccessMsg = function () {
+    successMessage.classList.add('hidden');
+    successMessage.removeEventListener('click', removeSuccessMsg);
+    document.removeEventListener('keydown', onMessageEscPress);
+  };
+
+  var onMessageEscPress = function (evt) {
+    window.utils.isEscEvent(evt, removeSuccessMsg);
+  };
+
+  // сброс формы, координат главного пина
+  var onFormReset = function () {
+    mapPinMain.style.top = (map.offsetHeight * 0.5) + 'px';
+    mapPinMain.style.left = START_PIN_MAIN_X + 'px';
+
+    map.classList.add('map--faded');
+    form.classList.add('ad-form--disabled');
+
+    window.pin.removePins();
+    window.card.removeCards();
+    window.images.removeImages();
+    removeFieldsState();
+    disableFields(true);
+    setTimeout(function () {
+      selectType();
+      syncRoomsGuests();
+      setCoords();
+    });
+    filter.reset();
+    removeListeners();
+    window.map.loadPage();
+  };
+
+  // отмена действия формы по умолчанию, отправка формы
+  var onFormSubmit = function (evt) {
     window.backend.save(new FormData(form), function () {
       onFormReset();
       form.reset();
-      successMessage.classList.remove('hidden');
-    }, showError);
+      showSuccessMsg();
+    }, showErrorMsg);
     evt.preventDefault();
-  });
+  };
 
-  // скрывает сообщение об успешной отправке формы
-  successMessage.addEventListener('click', function () {
-    successMessage.classList.add('hidden');
-  });
+  // добавить обработчики событий на форму
+  var addListeners = function () {
+    typeField.addEventListener('change', selectType);
+    timeInField.addEventListener('change', selectTimeIn);
+    timeOutField.addEventListener('change', selectTimeOut);
+    roomField.addEventListener('change', syncRoomsGuests);
+    form.addEventListener('reset', onFormReset);
+    form.addEventListener('submit', onFormSubmit);
+  };
 
-  document.addEventListener('keydown', function (evt) {
-    window.utils.isEscEvent(evt, function () {
-      successMessage.classList.add('hidden');
-    });
-  });
+  // удалить обработчики событий с формы
+  var removeListeners = function () {
+    typeField.removeEventListener('change', selectType);
+    timeInField.removeEventListener('change', selectTimeIn);
+    timeOutField.removeEventListener('change', selectTimeOut);
+    roomField.removeEventListener('change', syncRoomsGuests);
+    form.removeEventListener('reset', onFormReset);
+    form.removeEventListener('submit', onFormSubmit);
+  };
 
   window.form = {
+    addListeners: addListeners,
     disableFields: disableFields,
     setCoords: setCoords,
     selectType: selectType,
