@@ -1,46 +1,45 @@
 'use strict';
 
 (function () {
-  var ADS_LENGTH = 5;
+  var PINS_NUMBER = 5;
   var MAP_PIN_WIDTH = 50;
   var MAP_PIN_HEIGHT = 70;
 
   var map = document.querySelector('.map');
 
   // создание меток на карте
-  var renderMapPin = function (mapPin) {
+  var getMapPin = function (mapPin) {
     var mapPinTemplate = document.querySelector('template').content.querySelector('.map__pin');
-    var mapPinElement = mapPinTemplate.cloneNode(true);
-    mapPinElement.classList.add('hidden');
-    mapPinElement.style = 'left: ' + (mapPin.location.x - 0.5 * MAP_PIN_WIDTH) + 'px; top: ' + (mapPin.location.y - MAP_PIN_HEIGHT) + 'px;';
-    mapPinElement.querySelector('img').src = mapPin.author.avatar;
-    mapPinElement.querySelector('img').alt = mapPin.offer.title;
-    return mapPinElement;
+    var mapPinNode = mapPinTemplate.cloneNode(true);
+    mapPinNode.style = 'left: ' + (mapPin.location.x - 0.5 * MAP_PIN_WIDTH) + 'px; top: ' + (mapPin.location.y - MAP_PIN_HEIGHT) + 'px;';
+    mapPinNode.querySelector('img').src = mapPin.author.avatar;
+    mapPinNode.querySelector('img').alt = mapPin.offer.title;
+    return mapPinNode;
   };
 
-  // отрисовка элементов
-  var getElements = function (data, action) {
-    var fragment = document.createDocumentFragment();
-    for (var i = 0; i < ADS_LENGTH; i++) {
-      fragment.appendChild(action(data[i]));
-    }
-    return fragment;
-  };
-
-  // загрузка данных
-  var loadElements = function () {
+  // отрисовка пинов
+  var renderPins = function (pins) {
     var mapList = map.querySelector('.map__pins');
-    var onLoad = function (data) {
-      mapList.appendChild(getElements(data, renderMapPin));
-    };
-    var onError = function (msg) {
-      window.form.errorHandler(msg);
-    };
-    window.backend.load(onLoad, onError);
+    var fragment = document.createDocumentFragment();
+    var items = pins.length > PINS_NUMBER ? PINS_NUMBER : pins.length;
+    for (var i = 0; i < items; i++) {
+      var pin = getMapPin(pins[i]);
+      pin.dataset.indexNumber = i;
+      fragment.appendChild(pin);
+    }
+    mapList.appendChild(fragment);
+  };
+
+  // удаление пинов
+  var removePins = function () {
+    var mapPins = map.querySelectorAll('.map__pin:not(.map__pin--main)');
+    mapPins.forEach(function (item) {
+      item.remove();
+    });
   };
 
   window.pin = {
-    getElements: getElements,
-    loadElements: loadElements
+    renderPins: renderPins,
+    removePins: removePins
   };
 })();

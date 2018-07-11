@@ -5,8 +5,6 @@
   var LOCATION_Y_MAX = 630;
   var MAP_PIN_MAIN_WIDTH = 65;
   var MAP_PIN_MAIN_HEIGHT = 85;
-  var ESC_KEYCODE = 27;
-  var ENTER_KEYCODE = 13;
 
   var map = document.querySelector('.map');
   var mapPinMain = map.querySelector('.map__pin--main');
@@ -15,18 +13,13 @@
 
   // переключение карты из неактивного состояния в активное
   var enableForm = function () {
-    var mapPins = map.querySelectorAll('.map__pin');
-
     map.classList.remove('map--faded');
     form.classList.remove('ad-form--disabled');
+    window.form.addListeners();
     window.form.disableFields(false);
-
-    mapPins.forEach(function (pin) {
-      pin.classList.remove('hidden');
-    });
-
-    initializePopup(mapPins);
+    window.backend.load(window.filter.onLoadSuccess, window.form.onLoadError);
     window.form.validateFields();
+    mapPinMain.removeEventListener('mouseup', enableForm);
   };
 
   // перетаскивание главного пина
@@ -76,75 +69,66 @@
 
       document.removeEventListener('mousemove', onMouseMove);
       document.removeEventListener('mouseup', onMouseUp);
-
-      enableForm();
     };
 
     document.addEventListener('mousemove', onMouseMove);
     document.addEventListener('mouseup', onMouseUp);
   };
 
-  mapPinMain.addEventListener('mousedown', function (evt) {
-    onMouseDown(evt);
-  });
+  // запускает один раз загрузку пинов и карточек
+  var loadPage = function () {
+    mapPinMain.addEventListener('mouseup', enableForm);
+  };
 
   // форма заблокирована
   var disableForm = function () {
     window.form.disableFields(true);
-    window.pin.loadElements();
-    window.card.loadElements();
     window.form.setCoords();
     window.form.selectType();
     window.form.syncRoomsGuests();
+    loadPage();
   };
 
-  disableForm();
-
   // показываем карточку
-  var openCard = function (evt, index) {
-    var mapCards = map.querySelectorAll('.map__card');
-    window.form.hideCards();
+  map.addEventListener('click', function (evt) {
+    var evtTarget = evt.target.closest('.map__pin:not(.map__pin--main)');
+    if (evtTarget) {
+      closePopup();
+      initializePopup(evtTarget);
+    }
+  });
 
-    if (!evt.currentTarget.matches('.map__pin--main')) {
-      mapCards[index - 1].classList.remove('hidden');
+  var initializePopup = function (mapPin) {
+    if (mapPin) {
+      var index = parseInt(mapPin.dataset.indexNumber, 10);
+      window.card.renderCard(index);
+      mapPin.classList.add('map__pin--active');
+      addListeners();
     }
   };
 
-  var initializePopup = function (mapPins) {
+  // прячем карточку
+  var closePopup = function () {
+    window.card.removeCards();
+    document.removeEventListener('keydown', onPopupEscPress);
+  };
+
+  var onPopupEscPress = function (evt) {
+    window.utils.isEscEvent(evt, closePopup);
+  };
+
+  var addListeners = function () {
     var btnsClose = map.querySelectorAll('.popup__close');
-
-    // показываем по клику/enter на пине
-    mapPins.forEach(function (item, index) {
-      item.addEventListener('click', function (evt) {
-        openCard(evt, index);
-        evt.currentTarget.classList.add('map__pin--active');
-      });
-
-      item.addEventListener('keydown', function (evt) {
-        if (evt.keyCode === ENTER_KEYCODE) {
-          openCard(evt, index);
-          evt.currentTarget.classList.add('map__pin--active');
-        }
-      });
-    });
-
-    // прячем по клику/enter на кнопке, esc
     btnsClose.forEach(function (btnClose) {
-      btnClose.addEventListener('click', function () {
-        window.form.hideCards();
-      });
-
-      btnClose.addEventListener('keydown', function (evt) {
-        if (evt.keyCode === ENTER_KEYCODE) {
-          window.form.hideCards();
-        }
-      });
-
-      document.addEventListener('keydown', function (evt) {
-        if (evt.keyCode === ESC_KEYCODE) {
-          window.form.hideCards();
-        }
-      });
+      btnClose.addEventListener('click', closePopup);
     });
+    document.addEventListener('keydown', onPopupEscPress);
+  };
+
+  disableForm();
+  mapPinMain.addEventListener('mousedown', onMouseDown);
+
+  window.map = {
+    loadPage: loadPage
   };
 })();

@@ -622,7 +622,7 @@ fieldset {
   border-radius: 4px;
 }
 
-.ad-form__element .ad-form__element--border-red {
+.ad-form__element .ad-form__element--invalid {
   border: 1px solid red;
 }
 
