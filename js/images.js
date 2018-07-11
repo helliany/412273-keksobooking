@@ -14,16 +14,20 @@
   var photoPreview = photoContainer.querySelector('.ad-form__photo');
 
   // проверяет соответствие загружаемого файла
-  var matchFileType = function (file, action) {
-    var fileName = file.name.toLowerCase();
-    var matches = FILE_TYPES.some(function (it) {
-      return fileName.endsWith(it);
-    });
-    if (matches) {
+  var matchFileType = function (files, action) {
+    Array.from(files).forEach(function (item) {
       var reader = new FileReader();
-      reader.readAsDataURL(file);
-      action(reader);
-    }
+      var fileName = item.name.toLowerCase();
+      var matches = FILE_TYPES.some(function (it) {
+        return fileName.endsWith(it);
+      });
+      if (matches) {
+        reader.readAsDataURL(item);
+        reader.addEventListener('load', function () {
+          action(reader.result);
+        });
+      }
+    });
   };
 
   // выбор файла перетаскиванием
@@ -32,49 +36,35 @@
     evt.dataTransfer.dropEffect = 'copy';
   };
 
-  var onZoneDrop = function (evt, action) {
-    evt.preventDefault();
-    var file = evt.dataTransfer.files[0];
-    action(file);
-  };
-
   // загрузка аватарки
-  var loadAvatar = function (file) {
-    matchFileType(file, function (reader) {
-      reader.addEventListener('load', function () {
-        avatarPreview.src = reader.result;
-      });
-    });
+  var loadAvatar = function (value) {
+    avatarPreview.src = value;
   };
 
   // загрузка фото жилья
-  var loadPhoto = function (file) {
-    matchFileType(file, function (reader) {
-      photoPreview.classList.remove('ad-form__photo--main');
-      reader.addEventListener('load', function () {
-        var photoPreviewNode = photoPreview.cloneNode(true);
-        photoPreviewNode.insertAdjacentHTML('beforeend', '<img src="' + reader.result + '" width="70" height="70" alt="Фотография жилья">');
-        photoContainer.appendChild(photoPreviewNode);
-      });
-    });
+  var loadPhoto = function (value) {
+    photoPreview.classList.remove('ad-form__photo--main');
+    var photoPreviewNode = photoPreview.cloneNode(true);
+    photoPreviewNode.insertAdjacentHTML('beforeend', '<img src="' + value + '" width="70" height="70" alt="Фотография жилья">');
+    photoContainer.appendChild(photoPreviewNode);
   };
 
   var onAvatarInputChange = function (evt) {
-    var file = evt.target.files[0];
-    loadAvatar(file);
-  };
-
-  var onPhotoInputChange = function (evt) {
-    var file = evt.target.files[0];
-    loadPhoto(file);
+    matchFileType(evt.target.files, loadAvatar);
   };
 
   var onAvatarZoneDrop = function (evt) {
-    onZoneDrop(evt, loadAvatar);
+    evt.preventDefault();
+    matchFileType(evt.dataTransfer.files, loadAvatar);
+  };
+
+  var onPhotoInputChange = function (evt) {
+    matchFileType(evt.target.files, loadPhoto);
   };
 
   var onPhotoZoneDrop = function (evt) {
-    onZoneDrop(evt, loadPhoto);
+    evt.preventDefault();
+    matchFileType(evt.dataTransfer.files, loadPhoto);
   };
 
   // добавить обработчики событий на поля загрузки

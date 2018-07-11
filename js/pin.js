@@ -23,7 +23,9 @@
     var fragment = document.createDocumentFragment();
     var items = pins.length > PINS_NUMBER ? PINS_NUMBER : pins.length;
     for (var i = 0; i < items; i++) {
-      fragment.appendChild(getMapPin(pins[i]));
+      var pin = getMapPin(pins[i]);
+      pin.dataset.indexNumber = i;
+      fragment.appendChild(pin);
     }
     mapList.appendChild(fragment);
   };

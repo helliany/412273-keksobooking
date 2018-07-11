@@ -91,52 +91,37 @@
 
   // показываем карточку
   map.addEventListener('click', function (evt) {
-    var evtTarget = evt.target;
-    var evtTargetParent = evt.target.parentNode;
-    if (evtTarget.classList.contains('map__pin') || evtTargetParent.classList.contains('map__pin')) {
+    var evtTarget = evt.target.closest('.map__pin:not(.map__pin--main)');
+    if (evtTarget) {
+      closePopup();
       initializePopup(evtTarget);
-      initializePopup(evtTargetParent);
     }
   });
 
-  var initializePopup = function (evtTarget) {
-    var mapPins = map.querySelectorAll('.map__pin:not(.map__pin--main)');
-    mapPins.forEach(function (item, index) {
-      if (item === evtTarget) {
-        window.card.renderCard(index);
-        item.classList.add('map__pin--active');
-      }
-    });
-    closePopup();
-  };
-
-  var onPopupEscPress = function (evt) {
-    window.utils.isEscEvent(evt, window.card.removeCards);
+  var initializePopup = function (mapPin) {
+    if (mapPin) {
+      var index = parseInt(mapPin.dataset.indexNumber, 10);
+      window.card.renderCard(index);
+      mapPin.classList.add('map__pin--active');
+      addListeners();
+    }
   };
 
   // прячем карточку
   var closePopup = function () {
+    window.card.removeCards();
+    document.removeEventListener('keydown', onPopupEscPress);
+  };
+
+  var onPopupEscPress = function (evt) {
+    window.utils.isEscEvent(evt, closePopup);
+  };
+
+  var addListeners = function () {
     var btnsClose = map.querySelectorAll('.popup__close');
-    var mapPins = map.querySelectorAll('.map__pin:not(.map__pin--main)');
-
-    // прячем по клику/enter на пине
-    mapPins.forEach(function (item) {
-      item.addEventListener('click', window.card.removeCards);
-
-      item.addEventListener('keydown', function (evt) {
-        window.utils.isEnterEvent(evt, window.card.removeCards);
-      });
-    });
-
-    // прячем по клику/enter на кнопке, esc
     btnsClose.forEach(function (btnClose) {
-      btnClose.addEventListener('click', window.card.removeCards);
-
-      btnClose.addEventListener('keydown', function (evt) {
-        window.utils.isEnterEvent(evt, window.card.removeCards);
-      });
+      btnClose.addEventListener('click', closePopup);
     });
-
     document.addEventListener('keydown', onPopupEscPress);
   };
 
