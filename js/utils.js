@@ -1,24 +1,23 @@
 'use strict';
 
 (function () {
-  var ESC_KEYCODE = 27;
-  var ENTER_KEYCODE = 13;
   var DEBOUNCE_INTERVAL = 500;
-
   var lastTimeout;
 
-  var isEscEvent = function (evt, action) {
-    if (evt.keyCode === ESC_KEYCODE) {
-      action();
+  // возвращает верное окончание слова
+  var getWordDecl = function (number, arr) {
+    var count = number > 19 ? number % 10 : number % 100;
+    switch (count) {
+      case 1:
+        return arr[0];
+      case 2: case 3: case 4:
+        return arr[1];
+      default:
+        return arr[2];
     }
   };
 
-  var isEnterEvent = function (evt, action) {
-    if (evt.keyCode === ENTER_KEYCODE) {
-      action();
-    }
-  };
-
+  // устранение дребезга
   var debounce = function (fun) {
     if (lastTimeout) {
       window.clearTimeout(lastTimeout);
@@ -27,8 +26,7 @@
   };
 
   window.utils = {
-    isEscEvent: isEscEvent,
-    isEnterEvent: isEnterEvent,
+    getWordDecl: getWordDecl,
     debounce: debounce
   };
 })();

@@ -6,6 +6,7 @@
   var MAP_PIN_MAIN_WIDTH = 65;
   var MAP_PIN_MAIN_HEIGHT = 85;
   var START_PIN_MAIN_X = 570;
+  var ESC_KEYCODE = 27;
 
   var map = document.querySelector('.map');
   var mapPinMain = map.querySelector('.map__pin--main');
@@ -71,7 +72,8 @@
 
   // координаты главного пина
   var setCoords = function () {
-    addressField.value = (mapPinMain.offsetLeft + Math.floor(MAP_PIN_MAIN_WIDTH * 0.5)) + ', ' + (mapPinMain.offsetTop + MAP_PIN_MAIN_HEIGHT);
+    addressField.value = (mapPinMain.offsetLeft + Math.floor(MAP_PIN_MAIN_WIDTH * 0.5))
+      + ', ' + (mapPinMain.offsetTop + MAP_PIN_MAIN_HEIGHT);
   };
 
   // валидация инпутов
@@ -125,7 +127,9 @@
     };
 
     var onErrorEscPress = function (evt) {
-      window.utils.isEscEvent(evt, onErrorClick);
+      if (evt.keyCode === ESC_KEYCODE) {
+        onErrorClick();
+      }
     };
 
     document.addEventListener('click', onErrorClick);
@@ -147,7 +151,9 @@
   };
 
   var onSuccessEscPress = function (evt) {
-    window.utils.isEscEvent(evt, onSuccessClick);
+    if (evt.keyCode === ESC_KEYCODE) {
+      onSuccessClick();
+    }
   };
 
   // сброс формы, координат главного пина
