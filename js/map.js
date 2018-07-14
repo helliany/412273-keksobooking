@@ -93,10 +93,14 @@
 
   // показываем карточку
   map.addEventListener('click', function (evt) {
-    var evtTarget = evt.target.closest('.map__pin:not(.map__pin--main)');
-    if (evtTarget) {
+    var target = evt.target;
+    var mapPin = target.closest('.map__pin:not(.map__pin--main)');
+    var pinMain = target.closest('.map__pin--main');
+    if (mapPin) {
       closePopup();
-      initializePopup(evtTarget);
+      initializePopup(mapPin);
+    } else if (pinMain) {
+      closePopup();
     }
   });
 
