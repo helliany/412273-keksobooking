@@ -28,12 +28,18 @@
     palace: '10000'
   };
 
-  // поля формы заблокированы
+  // поля формы и селекты фильтра заблокированы
   var disableFields = function (value) {
     var fieldsets = form.querySelectorAll('fieldset');
+    var selects = filter.querySelectorAll('select');
+    var fieldsetFeature = filter.querySelector('.map__features');
     fieldsets.forEach(function (fieldset) {
       fieldset.disabled = value;
     });
+    selects.forEach(function (select) {
+      select.disabled = value;
+    });
+    fieldsetFeature.disabled = value;
   };
 
   // синхронизация типа жилья и цены
