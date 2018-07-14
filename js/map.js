@@ -5,6 +5,7 @@
   var LOCATION_Y_MAX = 630;
   var MAP_PIN_MAIN_WIDTH = 65;
   var MAP_PIN_MAIN_HEIGHT = 85;
+  var ESC_KEYCODE = 27;
 
   var map = document.querySelector('.map');
   var mapPinMain = map.querySelector('.map__pin--main');
@@ -61,7 +62,8 @@
 
       mapPinMain.style.top = mapPinMainY + 'px';
       mapPinMain.style.left = mapPinMainX + 'px';
-      addressField.value = (mapPinMainX + Math.floor(MAP_PIN_MAIN_WIDTH * 0.5)) + ', ' + (mapPinMainY + MAP_PIN_MAIN_HEIGHT);
+      addressField.value = (mapPinMainX + Math.floor(MAP_PIN_MAIN_WIDTH * 0.5))
+        + ', ' + (mapPinMainY + MAP_PIN_MAIN_HEIGHT);
     };
 
     var onMouseUp = function (upEvt) {
@@ -91,10 +93,14 @@
 
   // показываем карточку
   map.addEventListener('click', function (evt) {
-    var evtTarget = evt.target.closest('.map__pin:not(.map__pin--main)');
-    if (evtTarget) {
+    var target = evt.target;
+    var mapPin = target.closest('.map__pin:not(.map__pin--main)');
+    var pinMain = target.closest('.map__pin--main');
+    if (mapPin) {
       closePopup();
-      initializePopup(evtTarget);
+      initializePopup(mapPin);
+    } else if (pinMain) {
+      closePopup();
     }
   });
 
@@ -114,7 +120,9 @@
   };
 
   var onPopupEscPress = function (evt) {
-    window.utils.isEscEvent(evt, closePopup);
+    if (evt.keyCode === ESC_KEYCODE) {
+      closePopup();
+    }
   };
 
   var addListeners = function () {
