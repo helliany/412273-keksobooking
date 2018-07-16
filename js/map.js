@@ -54,17 +54,10 @@
       var mapPinMaxX = LOCATION_X_MAX - Math.floor(MAP_PIN_MAIN_WIDTH * 0.5);
       var mapPinMinX = LOCATION_X_MIN - Math.floor(MAP_PIN_MAIN_WIDTH * 0.5);
 
-      if (mapPinY > mapPinMaxY) {
-        mapPinY = mapPinMaxY;
-      } else if (mapPinY < mapPinMinY) {
-        mapPinY = mapPinMinY;
-      }
-
-      if (mapPinX > mapPinMaxX) {
-        mapPinX = mapPinMaxX;
-      } else if (mapPinX < mapPinMinX) {
-        mapPinX = mapPinMinX;
-      }
+      mapPinY = (mapPinY > mapPinMaxY) ? mapPinMaxY : mapPinY;
+      mapPinY = (mapPinY < mapPinMinY) ? mapPinMinY : mapPinY;
+      mapPinX = (mapPinX > mapPinMaxX) ? mapPinMaxX : mapPinX;
+      mapPinX = (mapPinX < mapPinMinX) ? mapPinMinX : mapPinX;
 
       mapPinMain.style.top = mapPinY + 'px';
       mapPinMain.style.left = mapPinX + 'px';
