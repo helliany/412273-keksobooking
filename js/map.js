@@ -3,6 +3,8 @@
 (function () {
   var LOCATION_Y_MIN = 130;
   var LOCATION_Y_MAX = 630;
+  var LOCATION_X_MIN = 0;
+  var LOCATION_X_MAX = 1200;
   var MAP_PIN_MAIN_WIDTH = 65;
   var MAP_PIN_MAIN_HEIGHT = 85;
   var ESC_KEYCODE = 27;
@@ -13,18 +15,17 @@
   var addressField = form.querySelector('#address');
 
   // переключение карты из неактивного состояния в активное
-  var enableForm = function () {
+  var onPinMainMouseUp = function () {
     map.classList.remove('map--faded');
     form.classList.remove('ad-form--disabled');
     window.form.addListeners();
     window.form.disableFields(false);
     window.backend.load(window.filter.onLoadSuccess, window.form.onLoadError);
-    window.form.validateFields();
-    mapPinMain.removeEventListener('mouseup', enableForm);
+    mapPinMain.removeEventListener('mouseup', onPinMainMouseUp);
   };
 
   // перетаскивание главного пина
-  var onMouseDown = function (evt) {
+  var onPinMainMouseDown = function (evt) {
     evt.preventDefault();
 
     var startCoords = {
@@ -45,25 +46,30 @@
         y: moveEvt.clientY
       };
 
-      var mapPinMainX = mapPinMain.offsetLeft - shift.x;
-      var mapPinMainY = mapPinMain.offsetTop - shift.y;
+      var mapPinX = mapPinMain.offsetLeft - shift.x;
+      var mapPinY = mapPinMain.offsetTop - shift.y;
 
-      if (mapPinMainY > LOCATION_Y_MAX - MAP_PIN_MAIN_HEIGHT) {
-        mapPinMainY = LOCATION_Y_MAX - MAP_PIN_MAIN_HEIGHT;
-      } else if (mapPinMainY < LOCATION_Y_MIN) {
-        mapPinMainY = LOCATION_Y_MIN;
+      var mapPinMaxY = LOCATION_Y_MAX - MAP_PIN_MAIN_HEIGHT;
+      var mapPinMinY = LOCATION_Y_MIN - MAP_PIN_MAIN_HEIGHT;
+      var mapPinMaxX = LOCATION_X_MAX - Math.floor(MAP_PIN_MAIN_WIDTH * 0.5);
+      var mapPinMinX = LOCATION_X_MIN - Math.floor(MAP_PIN_MAIN_WIDTH * 0.5);
+
+      if (mapPinY > mapPinMaxY) {
+        mapPinY = mapPinMaxY;
+      } else if (mapPinY < mapPinMinY) {
+        mapPinY = mapPinMinY;
       }
 
-      if (mapPinMainX > map.offsetWidth - MAP_PIN_MAIN_WIDTH) {
-        mapPinMainX = map.offsetWidth - MAP_PIN_MAIN_WIDTH;
-      } else if (mapPinMainX < 0) {
-        mapPinMainX = 0;
+      if (mapPinX > mapPinMaxX) {
+        mapPinX = mapPinMaxX;
+      } else if (mapPinX < mapPinMinX) {
+        mapPinX = mapPinMinX;
       }
 
-      mapPinMain.style.top = mapPinMainY + 'px';
-      mapPinMain.style.left = mapPinMainX + 'px';
-      addressField.value = (mapPinMainX + Math.floor(MAP_PIN_MAIN_WIDTH * 0.5))
-        + ', ' + (mapPinMainY + MAP_PIN_MAIN_HEIGHT);
+      mapPinMain.style.top = mapPinY + 'px';
+      mapPinMain.style.left = mapPinX + 'px';
+      addressField.value = (mapPinX + Math.floor(MAP_PIN_MAIN_WIDTH * 0.5))
+        + ', ' + (mapPinY + MAP_PIN_MAIN_HEIGHT);
     };
 
     var onMouseUp = function (upEvt) {
@@ -79,14 +85,14 @@
 
   // запускает один раз загрузку пинов и карточек
   var loadPage = function () {
-    mapPinMain.addEventListener('mouseup', enableForm);
+    mapPinMain.addEventListener('mouseup', onPinMainMouseUp);
   };
 
   // форма заблокирована
   var disableForm = function () {
     window.form.disableFields(true);
     window.form.setCoords();
-    window.form.selectType();
+    window.form.syncTypePrice();
     window.form.syncRoomsGuests();
     loadPage();
   };
@@ -116,10 +122,12 @@
   // прячем карточку
   var closePopup = function () {
     window.card.removeCards();
-    document.removeEventListener('keydown', onPopupEscPress);
+    document.removeEventListener('keydown', onEscPress);
   };
 
-  var onPopupEscPress = function (evt) {
+  var onBtnClick = closePopup;
+
+  var onEscPress = function (evt) {
     if (evt.keyCode === ESC_KEYCODE) {
       closePopup();
     }
@@ -128,13 +136,13 @@
   var addListeners = function () {
     var btnsClose = map.querySelectorAll('.popup__close');
     btnsClose.forEach(function (btnClose) {
-      btnClose.addEventListener('click', closePopup);
+      btnClose.addEventListener('click', onBtnClick);
     });
-    document.addEventListener('keydown', onPopupEscPress);
+    document.addEventListener('keydown', onEscPress);
   };
 
   disableForm();
-  mapPinMain.addEventListener('mousedown', onMouseDown);
+  mapPinMain.addEventListener('mousedown', onPinMainMouseDown);
 
   window.map = {
     loadPage: loadPage

@@ -43,13 +43,15 @@
   };
 
   // синхронизация типа жилья и цены
-  var selectType = function () {
+  var syncTypePrice = function () {
     var priceField = form.querySelector('#price');
     var userType = typeField.options[typeField.selectedIndex].value;
     var userPrice = typeToPrice[userType];
     priceField.min = userPrice;
     priceField.placeholder = userPrice;
   };
+
+  var onTypeChange = syncTypePrice;
 
   // синхронизация времени заезда и выезда
   var onTimeInChange = function () {
@@ -76,6 +78,8 @@
     });
   };
 
+  var onRoomChange = syncRoomsGuests;
+
   // координаты главного пина
   var setCoords = function () {
     addressField.value = (mapPinMain.offsetLeft + Math.floor(MAP_PIN_MAIN_WIDTH * 0.5))
@@ -83,7 +87,7 @@
   };
 
   // валидация инпутов
-  var onInputInvalid = function (evt) {
+  var validateFields = function (evt) {
     if (!evt.target.validity.valid) {
       evt.target.classList.add('ad-form__element--invalid');
     } else {
@@ -91,24 +95,28 @@
     }
   };
 
-  var validateFields = function () {
+  // добавить обработчики событий на инпуты
+  var onFieldInvalid = validateFields;
+  var onFieldInput = validateFields;
+
+  var addFieldsListeners = function () {
     fields.forEach(function (field) {
-      field.addEventListener('invalid', onInputInvalid);
-      field.addEventListener('input', onInputInvalid);
+      field.addEventListener('invalid', onFieldInvalid);
+      field.addEventListener('input', onFieldInput);
     });
   };
 
   // убрать рамки и обработчики событий с инпутов
-  var removeFieldsState = function () {
+  var removeFieldsListeners = function () {
     fields.forEach(function (field) {
-      field.removeEventListener('invalid', onInputInvalid);
-      field.removeEventListener('input', onInputInvalid);
+      field.removeEventListener('invalid', onFieldInvalid);
+      field.removeEventListener('input', onFieldInput);
       field.classList.remove('ad-form__element--invalid');
     });
   };
 
   // сообщение об ошибке загрузки
-  var onLoadError = function (errorMessage) {
+  var getError = function (errorMessage) {
     var node = document.createElement('div');
     node.style = 'z-index: 3; width: 100%; height: 100%; padding-top: 300px; text-align: center; background-color: rgba(0, 0, 0, 0.8)';
     node.style.position = 'fixed';
@@ -117,24 +125,26 @@
     node.style.fontSize = '50px';
     node.style.color = '#ffffff';
     node.style.fontWeight = '700';
-
     node.textContent = errorMessage;
     document.body.insertAdjacentElement('afterbegin', node);
     return node;
   };
 
+  var onLoadError = getError;
+
   // скрываемое сообщение об ошибке загрузки
   var showErrorMsg = function (errorMessage) {
-    var node = onLoadError(errorMessage);
-    var onErrorClick = function () {
+    var node = getError(errorMessage);
+    var closeErrorMsg = function () {
       node.remove();
       document.removeEventListener('click', onErrorClick);
       document.removeEventListener('keydown', onErrorEscPress);
     };
 
+    var onErrorClick = closeErrorMsg;
     var onErrorEscPress = function (evt) {
       if (evt.keyCode === ESC_KEYCODE) {
-        onErrorClick();
+        closeErrorMsg();
       }
     };
 
@@ -145,25 +155,25 @@
   // показывает сообщение об успешной отправке формы
   var showSuccessMsg = function () {
     successMessage.classList.remove('hidden');
+    var closeSuccessMsg = function () {
+      successMessage.classList.add('hidden');
+      successMessage.removeEventListener('click', onSuccessClick);
+      document.removeEventListener('keydown', onSuccessEscPress);
+    };
+
+    var onSuccessClick = closeSuccessMsg;
+    var onSuccessEscPress = function (evt) {
+      if (evt.keyCode === ESC_KEYCODE) {
+        closeSuccessMsg();
+      }
+    };
+
     successMessage.addEventListener('click', onSuccessClick);
     document.addEventListener('keydown', onSuccessEscPress);
   };
 
-  // скрывает сообщение об успешной отправке формы
-  var onSuccessClick = function () {
-    successMessage.classList.add('hidden');
-    successMessage.removeEventListener('click', onSuccessClick);
-    document.removeEventListener('keydown', onSuccessEscPress);
-  };
-
-  var onSuccessEscPress = function (evt) {
-    if (evt.keyCode === ESC_KEYCODE) {
-      onSuccessClick();
-    }
-  };
-
   // сброс формы, координат главного пина
-  var onFormReset = function () {
+  var resetForm = function () {
     mapPinMain.style.top = (map.offsetHeight * 0.5) + 'px';
     mapPinMain.style.left = START_PIN_MAIN_X + 'px';
 
@@ -173,10 +183,9 @@
     window.pin.removePins();
     window.card.removeCards();
     window.images.removeImages();
-    removeFieldsState();
     disableFields(true);
     setTimeout(function () {
-      selectType();
+      syncTypePrice();
       syncRoomsGuests();
       setCoords();
     });
@@ -185,10 +194,12 @@
     window.map.loadPage();
   };
 
+  var onFormReset = resetForm;
+
   // отмена действия формы по умолчанию, отправка формы
   var onFormSubmit = function (evt) {
     window.backend.save(new FormData(form), function () {
-      onFormReset();
+      resetForm();
       form.reset();
       showSuccessMsg();
     }, showErrorMsg);
@@ -197,23 +208,25 @@
 
   // добавить обработчики событий на форму
   var addListeners = function () {
-    typeField.addEventListener('change', selectType);
+    typeField.addEventListener('change', onTypeChange);
     timeInField.addEventListener('change', onTimeInChange);
     timeOutField.addEventListener('change', onTimeOutChange);
-    roomField.addEventListener('change', syncRoomsGuests);
+    roomField.addEventListener('change', onRoomChange);
     form.addEventListener('reset', onFormReset);
     form.addEventListener('submit', onFormSubmit);
+    addFieldsListeners();
     window.images.addListeners();
   };
 
   // удалить обработчики событий с формы
   var removeListeners = function () {
-    typeField.removeEventListener('change', selectType);
+    typeField.removeEventListener('change', onTypeChange);
     timeInField.removeEventListener('change', onTimeInChange);
     timeOutField.removeEventListener('change', onTimeOutChange);
-    roomField.removeEventListener('change', syncRoomsGuests);
+    roomField.removeEventListener('change', onRoomChange);
     form.removeEventListener('reset', onFormReset);
     form.removeEventListener('submit', onFormSubmit);
+    removeFieldsListeners();
     window.images.removeListeners();
   };
 
@@ -221,9 +234,8 @@
     addListeners: addListeners,
     disableFields: disableFields,
     setCoords: setCoords,
-    selectType: selectType,
+    syncTypePrice: syncTypePrice,
     syncRoomsGuests: syncRoomsGuests,
-    validateFields: validateFields,
     onLoadError: onLoadError
   };
 })();
